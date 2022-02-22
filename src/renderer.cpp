@@ -1,0 +1,78 @@
+//
+// Created by wyz on 2022/2/14.
+//
+#include "renderer.hpp"
+#include "shader.hpp"
+#include "rasterizer.hpp"
+#include <iostream>
+SoftRenderer::SoftRenderer(const std::shared_ptr<Scene> &scene)
+:scene(scene)
+{
+    init();
+}
+
+void SoftRenderer::render()
+{
+    auto models = scene->getVisibleModels();
+    if(!models.empty()) std::cout<<"render model count "<<models.size()<<std::endl;
+    for(auto model:models){
+        PBRShader shader;
+        shader.model = model->getModelMatrix();
+        shader.view = scene->getCamera()->getViewMatrix();
+        shader.projection = scene->getCamera()->getProjMatrix();
+        shader.MVPMatrix = shader.projection * shader.view * shader.model;
+        int triangle_count = model->getMesh()->triangles.size();
+        std::cout<<"render model triangle count "<<triangle_count<<std::endl;
+        for(int i =0;i<triangle_count;i++){
+            const auto& triangle = model->getMesh()->triangles[i];
+
+//            if(backFaceCulling(triangle,shader.model)) continue;
+
+            auto triangle_primitive = shader.vertexShader(triangle);
+
+            if(clipTriangle(triangle_primitive)) continue;
+
+            triangle_primitive.Homogenization();
+
+            Rasterizer::rasterTriangle(triangle_primitive,shader,pixels,*z_buffer);
+
+        }
+    }
+}
+
+const Image<color4b> &SoftRenderer::getImage()
+{
+    return pixels;
+}
+
+void SoftRenderer::init()
+{
+    createFrameBuffer(ScreenWidth,ScreenWidth);
+
+}
+bool SoftRenderer::backFaceCulling(const Triangle &triangle,mat4 modelMatrix) const
+{
+    float3 e1 = normalize(triangle.vertices[1].pos - triangle.vertices[0].pos);
+    float3 e2 = normalize(triangle.vertices[2].pos - triangle.vertices[1].pos);
+    float3 face_normal = cross(e1,e2);
+    face_normal = modelMatrix * float4(face_normal,0.f);
+    return dot(scene->getCamera()->front,face_normal)<=0.f;
+}
+bool SoftRenderer::clipTriangle(const Triangle &triangle) const
+{
+    int outside_count = 0;
+    for(int i = 0;i<3;i++){
+        const auto& v = triangle.vertices[i].gl_Position;
+        bool inside = (-v.w <= v.x && v.x <= v.w)
+                      && (-v.w <= v.y && v.y <= v.w)
+                      && (0.f <= v.z && v.z <= v.w); // z should in (0,1) for camera at origin
+        if(!inside) outside_count++;
+    }
+    return outside_count == 3;
+}
+void SoftRenderer::createFrameBuffer(int w, int h)
+{
+    pixels = Image<color4b>(w,h);
+
+    z_buffer = std::make_unique<NaiveZBuffer>(w,h);
+}
