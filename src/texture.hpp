@@ -19,9 +19,9 @@ struct LinearSampler{
         int u1 = std::clamp(u0 + 1, 0, static_cast<int>(tex.width() - 1));
         int v0 = std::clamp(static_cast<int>(v), 0, static_cast<int>(tex.height() - 1));
         int v1 = std::clamp(v0 + 1, 0, static_cast<int>(tex.height() - 1));
-        double d_u = u - u0;
-        double d_v = v - v0;
-        return (tex(u0, v0) * (1.0 - d_u) + tex(u1, v0) * d_u) * (1.0 - d_v) +
-               (tex(u0, v1) * (1.0 - d_u) + tex(u1, v1) * d_u) * d_v;
+        float d_u = u - u0;
+        float d_v = v - v0;
+        return (tex(u0, v0) * (1.0f - d_u) + tex(u1, v0) * d_u) * (1.0f - d_v) +
+               (tex(u0, v1) * (1.0f - d_u) + tex(u1, v1) * d_u) * d_v;
     }
 };

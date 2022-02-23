@@ -61,8 +61,8 @@ void Rasterizer::rasterTriangle(Triangle &triangle, IShader &shader, Image<color
                 auto frag_texcoord = interpolate(alpha,beta,gamma,v[0].tex_coord,v[1].tex_coord,v[2].tex_coord,inv_weight);
                 auto pixel_color = shader.fragmentShader(frag_pos,frag_normal,frag_texcoord);
                 //todo gamma correction use gamma table
-//                gammaAdjust(pixel_color);
-                pixels(c,r) = pixel_color;
+                gammaAdjust(pixel_color);
+                pixels(c,pixels.height()-1-r) = pixel_color;
                 //todo update z-buffer
                 zBuffer.updateZBuffer(c,r,frag_z);
             }

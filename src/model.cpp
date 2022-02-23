@@ -8,7 +8,7 @@
 #include <stb_image.h>
 #include <iostream>
 auto LoadRGBImage(const std::string& path){
-//    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
     int width,height,channels;
     auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
     assert(channels==3);
@@ -27,7 +27,7 @@ auto LoadRGBImage(const std::string& path){
     return t;
 }
 auto LoadSRGBImage(const std::string& path){
-//    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
     int width,height,channels;
     auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
     assert(channels==3);
@@ -46,7 +46,7 @@ auto LoadSRGBImage(const std::string& path){
     return t;
 }
 auto LoadXYZImage(const std::string& path){
-//    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
     int width,height,channels;
     auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
     assert(channels==3);
@@ -65,7 +65,7 @@ auto LoadXYZImage(const std::string& path){
     return t;
 }
 auto LoadRImage(const std::string& path){
-//    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
     int width,height,channels;
     auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
     assert(channels==1);
@@ -83,7 +83,7 @@ auto LoadRImage(const std::string& path){
 }
 
 auto LoadSRImage(const std::string& path){
-//    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
     int width,height,channels;
     auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
     assert(channels==1);

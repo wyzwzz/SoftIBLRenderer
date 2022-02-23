@@ -41,7 +41,7 @@ void Displayer::initSDL()
         printf("%s - SDL could not create SDL_Renderer! SDL Error: %s\n", __FUNCTION__, SDL_GetError());
         throw std::runtime_error("SDL create window surface failed");
     }
-    texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_STREAMING,ScreenWidth,ScreenHeight);
+    texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STREAMING,ScreenWidth,ScreenHeight);
 }
 
 void Displayer::destroySDL()

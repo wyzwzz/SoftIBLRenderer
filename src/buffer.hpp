@@ -53,6 +53,10 @@ class Image{
         return d[toLinearIndex(x,y)];
     }
 
+    const T& operator()(int x, int y) const {
+        return d[toLinearIndex(x,y)];
+    }
+
     T& at(int x, int y){
         if(x>=w || x<0 || y>=h || y<0)
             throw std::out_of_range("Image at out of range");

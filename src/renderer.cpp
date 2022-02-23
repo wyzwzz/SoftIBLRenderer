@@ -21,12 +21,27 @@ void SoftRenderer::render()
         shader.view = scene->getCamera()->getViewMatrix();
         shader.projection = scene->getCamera()->getProjMatrix();
         shader.MVPMatrix = shader.projection * shader.view * shader.model;
+        shader.albedoMap = model->getAlbedoMap();
+        shader.normalMap = model->getNormalMap();
+        shader.aoMap = model->getAOMap();
+        shader.roughnessMap = model->getRoughnessMap();
+        shader.metallicMap = model->getMetallicMap();
+        shader.viewPos = scene->getCamera()->position;
+        //set light
+        {
+            const auto& lights = scene->getLights();
+            shader.lightNum = std::min(PBRShader::MaxLightNum,(int)lights.size());
+            for(int i = 0;i<shader.lightNum;i++){
+                shader.lightPos[i] = lights[i].light_position;
+                shader.lightRadiance[i] = lights[i].light_radiance;
+            }
+        }
         int triangle_count = model->getMesh()->triangles.size();
         std::cout<<"render model triangle count "<<triangle_count<<std::endl;
         for(int i =0;i<triangle_count;i++){
             const auto& triangle = model->getMesh()->triangles[i];
 
-//            if(backFaceCulling(triangle,shader.model)) continue;
+            if(backFaceCulling(triangle,shader.model)) continue;
 
             auto triangle_primitive = shader.vertexShader(triangle);
 
@@ -47,7 +62,7 @@ const Image<color4b> &SoftRenderer::getImage()
 
 void SoftRenderer::init()
 {
-    createFrameBuffer(ScreenWidth,ScreenWidth);
+    createFrameBuffer(ScreenWidth,ScreenHeight);
 
 }
 bool SoftRenderer::backFaceCulling(const Triangle &triangle,mat4 modelMatrix) const
@@ -56,7 +71,7 @@ bool SoftRenderer::backFaceCulling(const Triangle &triangle,mat4 modelMatrix) co
     float3 e2 = normalize(triangle.vertices[2].pos - triangle.vertices[1].pos);
     float3 face_normal = cross(e1,e2);
     face_normal = modelMatrix * float4(face_normal,0.f);
-    return dot(scene->getCamera()->front,face_normal)<=0.f;
+    return dot(scene->getCamera()->front,face_normal) > 0.0001f;
 }
 bool SoftRenderer::clipTriangle(const Triangle &triangle) const
 {

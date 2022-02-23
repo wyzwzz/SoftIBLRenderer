@@ -41,5 +41,19 @@ void Scene::clearLights()
 }
 Scene::Scene()
 {
-
+    //init settings
+    //light
+    {
+        Light l1{float3{3.f,3.f,3.f},
+        float3 {110.f,110.f,110.f}};
+        addLight(l1);
+    }
+}
+const std::vector<Light> &Scene::getLights()
+{
+    return lights;
+}
+void Scene::addLight(const Light& light)
+{
+    this->lights.emplace_back(light);
 }
