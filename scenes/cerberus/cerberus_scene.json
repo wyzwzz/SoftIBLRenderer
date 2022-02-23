@@ -1,0 +1,8 @@
+{
+  "mesh": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\cerberus\\meshes\\cerberus_mesh.obj",
+  "albedo": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\cerberus\\materials\\cerberus\\cerberus_albedo.png",
+  "normal": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\cerberus\\materials\\cerberus\\cerberus_normal.png",
+  "ambient": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\cerberus\\materials\\cerberus\\cerberus_ao.png",
+  "roughness": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\cerberus\\materials\\cerberus\\cerberus_rough.png",
+  "metallic": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\cerberus\\materials\\cerberus\\cerberus_metal.png"
+}
