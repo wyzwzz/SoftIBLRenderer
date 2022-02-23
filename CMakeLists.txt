@@ -5,6 +5,8 @@ project(SoftPBRRenderer LANGUAGES CXX)
 include(third_party/glm.cmake)
 include(third_party/sdl2.cmake)
 
+find_package(OpenMP)
+
 file(
         GLOB
         SoftPBRRenderer_SRCS
@@ -17,6 +19,7 @@ add_executable(SoftPBRRenderer ${SoftPBRRenderer_SRCS})
 target_link_libraries(SoftPBRRenderer PRIVATE
         glm
         SDL2-static
+        OpenMP::OpenMP_CXX
         )
 
 target_include_directories(SoftPBRRenderer PRIVATE
@@ -25,4 +28,7 @@ target_include_directories(SoftPBRRenderer PRIVATE
 target_compile_features(
         SoftPBRRenderer PRIVATE
         cxx_std_17
+)
+target_compile_options(
+        SoftPBRRenderer PRIVATE /openmp:experimental
 )

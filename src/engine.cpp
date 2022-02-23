@@ -40,6 +40,8 @@ void Engine::run()
 
         input_processor->processInput(exit,delta_t);
 
+        soft_renderer->clearFrameBuffer();
+
         soft_renderer->render();
 
         displayer->draw(soft_renderer->getImage());

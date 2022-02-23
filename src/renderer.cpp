@@ -5,6 +5,7 @@
 #include "shader.hpp"
 #include "rasterizer.hpp"
 #include <iostream>
+#include "omp.h"
 SoftRenderer::SoftRenderer(const std::shared_ptr<Scene> &scene)
 :scene(scene)
 {
@@ -38,6 +39,7 @@ void SoftRenderer::render()
         }
         int triangle_count = model->getMesh()->triangles.size();
         std::cout<<"render model triangle count "<<triangle_count<<std::endl;
+#pragma omp parallel for firstprivate(shader) schedule(dynamic)
         for(int i =0;i<triangle_count;i++){
             const auto& triangle = model->getMesh()->triangles[i];
 
@@ -90,4 +92,9 @@ void SoftRenderer::createFrameBuffer(int w, int h)
     pixels = Image<color4b>(w,h);
 
     z_buffer = std::make_unique<NaiveZBuffer>(w,h);
+}
+void SoftRenderer::clearFrameBuffer()
+{
+    pixels.clear();
+    z_buffer->clear();
 }

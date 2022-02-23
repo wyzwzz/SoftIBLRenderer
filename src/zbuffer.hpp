@@ -8,14 +8,14 @@ class ZBuffer{
     ZBuffer() = default;
     virtual bool zTest(int x,int y,float zVal) = 0;
     virtual void updateZBuffer(int x,int y,float zVal) = 0;
-
+    virtual void clear() = 0;
 };
 class NaiveZBuffer: public ZBuffer{
   public:
     NaiveZBuffer(int w,int h);
     bool zTest(int x,int y,float zVal) override;
     void updateZBuffer(int x,int y,float zVal) override;
-
+    void clear() override;
   private:
     Image<float> z_buffer;
 };

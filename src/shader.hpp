@@ -5,6 +5,7 @@
 #include "common.hpp"
 #include "mesh.hpp"
 #include "texture.hpp"
+#include <omp.h>
 class IShader{
   public:
     virtual ~IShader(){}
@@ -77,6 +78,7 @@ class PBRShader: public IShader{
 
         float3 Lo{0.f,0.f,0.f};
 
+#pragma omp simd
         for(int i = 0;i<lightNum;i++){
             float3 L = normalize(lightPos[i] - inPos);
             float3 H = normalize(V + L);

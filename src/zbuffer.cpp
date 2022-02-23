@@ -14,3 +14,11 @@ void NaiveZBuffer::updateZBuffer(int x, int y, float zVal)
 {
     z_buffer(x,y) = zVal;
 }
+void NaiveZBuffer::clear()
+{
+    for(int i = 0;i<z_buffer.width();i++){
+        for(int j = 0;j<z_buffer.height();j++){
+            z_buffer(i,j) = std::numeric_limits<float>::max();
+        }
+    }
+}

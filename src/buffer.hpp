@@ -79,6 +79,12 @@ class Image{
         w = h = size = 0;
     }
 
+    void clear(){
+        for(int i =0;i<w*h;i++){
+            d[i] = T{};
+        }
+    }
+
     int width() const { return w; }
     int height() const { return h; }
     int pitch() const { return sizeof(T) * w; }

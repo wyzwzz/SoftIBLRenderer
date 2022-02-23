@@ -14,7 +14,7 @@ std::vector<Model *> Scene::getVisibleModels()
     }
     return ms;
 }
-const Camera *Scene::getCamera()
+Camera *Scene::getCamera()
 {
     return &camera;
 }
@@ -47,6 +47,10 @@ Scene::Scene()
         Light l1{float3{3.f,3.f,3.f},
         float3 {110.f,110.f,110.f}};
         addLight(l1);
+
+        Light l2{float3{3.f,3.f,-3.f},
+                 float3 {110.f,110.f,110.f}};
+        addLight(l2);
     }
 }
 const std::vector<Light> &Scene::getLights()
