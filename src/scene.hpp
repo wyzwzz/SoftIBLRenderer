@@ -13,6 +13,7 @@ class Scene{
     std::vector<Model*> getVisibleModels();
     const std::vector<Light>& getLights();
     Camera* getCamera();
+    void loadScene(const std::string&);
     void addModel(Model model);
     void addLight(const Light& light);
     void setCamera(const Camera& camera);

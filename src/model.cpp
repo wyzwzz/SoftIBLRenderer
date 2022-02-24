@@ -2,8 +2,6 @@
 // Created by wyz on 2022/2/21.
 //
 #include "model.hpp"
-#include <json.hpp>
-#include <fstream>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <iostream>
@@ -100,29 +98,7 @@ auto LoadSRImage(const std::string& path){
     return t;
 }
 
-Model::Model(const std::string &modelFile)
-{
-    std::ifstream in(modelFile);
-    if(!in.is_open()){
-        throw std::runtime_error("Failed to open model file");
-    }
-    nlohmann::json j;
-    in >> j;
-    in.close();
-    std::string mesh_path = j.at("mesh");
-    std::string albedo_path = j.at("albedo");
-    std::string normal_path = j.at("normal");
-    std::string ambient_path = j.at("ambient");
-    std::string roughness_path = j.at("roughness");
-    std::string metallic_path = j.at("metallic");
-    this->mesh = std::make_unique<Mesh>(mesh_path);
-    this->albedo = LoadSRGBImage(albedo_path);
-    this->normal = LoadXYZImage(normal_path);
-    this->ambientO = LoadRImage(ambient_path);
-    this->roughness = LoadRImage(roughness_path);
-    this->metallic = LoadRImage(metallic_path);
-    this->model_matrix = mat4(1.f);
-}
+
 Mesh *Model::getMesh()
 {
     return mesh.get();
@@ -159,4 +135,40 @@ roughness(std::move(rhs.roughness)),metallic(std::move(rhs.metallic)),
 {
 
 }
-
+void Model::setModelMatrix(mat4 m)
+{
+    this->model_matrix = m;
+}
+void Model::loadModelMatrix(ModelTransform desc)
+{
+    auto m1= rotate(mat4(1.f),radians(desc.rotate_x),float3{1.f,0.f,0.f});
+    auto m2 = rotate(mat4(1.f),radians(desc.rotate_y),float3{0.f,1.f,0.f});
+    auto m3 = rotate(mat4(1.f),radians(desc.rotate_z),float3{0.f,0.f,1.f});
+    auto s = glm::scale(mat4(1.f),float3{desc.scale_x,desc.scale_y,desc.scale_z});
+    auto t = glm::translate(mat4(1.f),float3{desc.transfer_x,desc.transfer_y,desc.transfer_z});
+    this->model_matrix = t * s * m3 * m2 * m1 * this->model_matrix;
+}
+void Model::loadMesh(const std::string &mesh_path)
+{
+    this->mesh = std::make_unique<Mesh>(mesh_path);
+}
+void Model::loadAlbedoMap(const std::string &albedo_path)
+{
+    this->albedo = LoadSRGBImage(albedo_path);
+}
+void Model::loadNormalMap(const std::string &normal_path)
+{
+    this->normal = LoadXYZImage(normal_path);
+}
+void Model::loadAOMap(const std::string &ambient_path)
+{
+    this->ambientO = LoadRImage(ambient_path);
+}
+void Model::loadRoughnessMap(const std::string &roughness_path)
+{
+    this->roughness = LoadRImage(roughness_path);
+}
+void Model::loadMetallicMap(const std::string &metallic_path)
+{
+    this->metallic = LoadRImage(metallic_path);
+}

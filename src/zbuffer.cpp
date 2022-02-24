@@ -2,6 +2,7 @@
 // Created by wyz on 2022/2/15.
 //
 #include "zbuffer.hpp"
+#include <omp.h>
 NaiveZBuffer::NaiveZBuffer(int w, int h)
 {
     z_buffer = Image<float>(w,h,std::numeric_limits<float>::max());
@@ -16,6 +17,7 @@ void NaiveZBuffer::updateZBuffer(int x, int y, float zVal)
 }
 void NaiveZBuffer::clear()
 {
+#pragma omp parallel for
     for(int i = 0;i<z_buffer.width();i++){
         for(int j = 0;j<z_buffer.height();j++){
             z_buffer(i,j) = std::numeric_limits<float>::max();

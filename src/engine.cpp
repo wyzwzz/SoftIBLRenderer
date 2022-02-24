@@ -5,7 +5,7 @@
 #include "engine.hpp"
 #include "input.hpp"
 #include "renderer.hpp"
-
+#include "util.hpp"
 Engine::Engine()
 {
 
@@ -36,6 +36,7 @@ void Engine::run()
     uint32_t delta_t = 0;
     uint32_t last_t = 0;
     while(!exit){
+//        START_TIMER
         last_t = SDL_GetTicks();
 
         input_processor->processInput(exit,delta_t);
@@ -47,5 +48,6 @@ void Engine::run()
         displayer->draw(soft_renderer->getImage());
 
         delta_t = SDL_GetTicks() - last_t;
+//        STOP_TIMER("render a frame")
     }
 }

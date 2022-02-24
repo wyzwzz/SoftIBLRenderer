@@ -24,9 +24,10 @@ void InputProcessor::processInput(bool &exit, uint32_t delta_t)
             break;
         }
         case SDL_DROPFILE:{
-            std::cout<< event.drop.file <<std::endl;
+            std::cout<<"load scene file: "<< event.drop.file <<std::endl;
             try{
-                scene->addModel(Model(std::string(event.drop.file)));
+                scene->clearScene();
+                scene->loadScene(std::string(event.drop.file));
             }
             catch (const std::exception& err)
             {

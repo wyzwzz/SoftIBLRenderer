@@ -4,7 +4,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
-
+#include <glm/gtc/matrix_transform.hpp>
+using namespace glm;
 using float2 = glm::vec2;
 using float3 = glm::vec3;
 

@@ -3,6 +3,7 @@
 //
 #pragma once
 #include <stdexcept>
+#include <omp.h>
 template<typename T>
 class Image{
     int w,h;
@@ -80,6 +81,7 @@ class Image{
     }
 
     void clear(){
+#pragma omp parallel for
         for(int i =0;i<w*h;i++){
             d[i] = T{};
         }

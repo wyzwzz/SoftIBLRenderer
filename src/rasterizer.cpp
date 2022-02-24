@@ -55,15 +55,15 @@ void Rasterizer::rasterTriangle(Triangle &triangle, IShader &shader, Image<color
             alpha /= cc1;beta /= cc2;gamma /= cc3;
             auto inv_weight = 1.f / (alpha + beta + gamma);
             float frag_z = interpolate(alpha,beta,gamma,v[0].gl_Position.z,v[1].gl_Position.z,v[2].gl_Position.z,inv_weight);
-            if(zBuffer.zTest(c,r,frag_z)){//todo z-buffer test
+            if(zBuffer.zTest(c,r,frag_z)){
                 auto frag_pos = interpolate(alpha,beta,gamma,v[0].pos,v[1].pos,v[2].pos,inv_weight);
                 auto frag_normal = interpolate(alpha,beta,gamma,v[0].normal,v[1].normal,v[2].normal,inv_weight);
                 auto frag_texcoord = interpolate(alpha,beta,gamma,v[0].tex_coord,v[1].tex_coord,v[2].tex_coord,inv_weight);
                 auto pixel_color = shader.fragmentShader(frag_pos,frag_normal,frag_texcoord);
-                //todo gamma correction use gamma table
+
                 gammaAdjust(pixel_color);
                 pixels(c,pixels.height()-1-r) = pixel_color;
-                //todo update z-buffer
+
                 zBuffer.updateZBuffer(c,r,frag_z);
             }
         }
