@@ -1,16 +1,16 @@
 {
   "model_count":1,
   "model_1":{
-    "mesh": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\statue\\meshes\\statue_mesh.obj",
-    "albedo": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\statue\\materials\\marble\\marble_albedo.png",
-    "normal": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\statue\\materials\\marble\\marble_normal.png",
-    "ambient": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\statue\\materials\\marble\\marble_ao.png",
-    "roughness": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\statue\\materials\\marble\\marble_rough.png",
-    "metallic": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\statue\\materials\\marble\\marble_metal.png",
+    "mesh": "../scenes/statue/meshes/statue_mesh.obj",
+    "albedo": "../scenes/statue/materials/marble/marble_albedo.png",
+    "normal": "../scenes/statue/materials/marble/marble_normal.png",
+    "ambient": "../scenes/statue/materials/marble/marble_ao.png",
+    "roughness": "../scenes/statue/materials/marble/marble_rough.png",
+    "metallic": "../scenes/statue/materials/marble/marble_metal.png",
     "transform": {
       "rotation": [-90,0,0],
       "scale": [0.5,0.5,0.5],
-      "transfer": [0,0,0]
+      "transfer": [0,-3,0]
     }
   },
   "light_count": 2,

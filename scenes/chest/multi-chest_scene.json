@@ -1,0 +1,64 @@
+{
+  "model_count": 4,
+  "model_1": {
+    "mesh": "../scenes/chest/meshes/chest_mesh.obj",
+    "albedo": "../scenes/chest/materials/chest/chest_albedo.png",
+    "normal": "../scenes/chest/materials/chest/chest_normal.png",
+    "ambient": "../scenes/chest/materials/chest/chest_ao.png",
+    "roughness": "../scenes/chest/materials/chest/chest_rough.png",
+    "metallic": "../scenes/chest/materials/chest/chest_metal.png",
+    "transform": {
+      "rotation": [-0,0,0],
+      "scale": [1.0,1.0,1.0],
+      "transfer": [0,0,1.5]
+    }
+  },
+  "model_2": {
+    "mesh": "../scenes/chest/meshes/chest_mesh.obj",
+    "albedo": "../scenes/chest/materials/chest/chest_albedo.png",
+    "normal": "../scenes/chest/materials/chest/chest_normal.png",
+    "ambient": "../scenes/chest/materials/chest/chest_ao.png",
+    "roughness": "../scenes/chest/materials/chest/chest_rough.png",
+    "metallic": "../scenes/chest/materials/chest/chest_metal.png",
+    "transform": {
+      "rotation": [-0,0,0],
+      "scale": [1.0,1.0,1.0],
+      "transfer": [0,0,0.5]
+    }
+  },
+  "model_3": {
+    "mesh": "../scenes/chest/meshes/chest_mesh.obj",
+    "albedo": "../scenes/chest/materials/chest/chest_albedo.png",
+    "normal": "../scenes/chest/materials/chest/chest_normal.png",
+    "ambient": "../scenes/chest/materials/chest/chest_ao.png",
+    "roughness": "../scenes/chest/materials/chest/chest_rough.png",
+    "metallic": "../scenes/chest/materials/chest/chest_metal.png",
+    "transform": {
+      "rotation": [-0,0,0],
+      "scale": [1.0,1.0,1.0],
+      "transfer": [0,0,-0.5]
+    }
+  },
+  "model_4": {
+    "mesh": "../scenes/chest/meshes/chest_mesh.obj",
+    "albedo": "../scenes/chest/materials/chest/chest_albedo.png",
+    "normal": "../scenes/chest/materials/chest/chest_normal.png",
+    "ambient": "../scenes/chest/materials/chest/chest_ao.png",
+    "roughness": "../scenes/chest/materials/chest/chest_rough.png",
+    "metallic": "../scenes/chest/materials/chest/chest_metal.png",
+    "transform": {
+      "rotation": [-0,0,0],
+      "scale": [1.0,1.0,1.0],
+      "transfer": [0,0,-1.5]
+    }
+  },
+  "light_count": 2,
+  "light_1": {
+    "position": [3.0,3.0,3.0],
+    "radiance": [110.0,110.0,110.0]
+  },
+  "light_2": {
+    "position": [3.0,3.0,-3.0],
+    "radiance": [110.0,110.0,110.0]
+  }
+}

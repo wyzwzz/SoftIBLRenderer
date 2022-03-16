@@ -1,103 +1,119 @@
-//
-// Created by wyz on 2022/2/21.
-//
 #include "model.hpp"
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 #include <iostream>
-auto LoadRGBImage(const std::string& path){
+#include <stb_image.h>
+auto LoadRGBImage(const std::string &path)
+{
     stbi_set_flip_vertically_on_load(true);
-    int width,height,channels;
-    auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
-    assert(channels==3);
-    if(!data) throw std::runtime_error("load rgb image failed");
-    Texture<float3> t(width,height);
-    constexpr float inv = 1.f/255.f;
-    for(int x = 0;x<width;x++){
-        for(int y = 0;y<height;y++){
-            t(x,y) = float3{static_cast<float>(data[(y*width+x)*channels+0])*inv,
-                            static_cast<float>(data[(y*width+x)*channels+1])*inv,
-                            static_cast<float>(data[(y*width+x)*channels+2])*inv};
+    int width, height, channels;
+    auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    assert(channels == 3);
+    if (!data)
+        throw std::runtime_error("load rgb image failed");
+    Texture<float3> t(width, height);
+    constexpr float inv = 1.f / 255.f;
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            t(x, y) = float3{static_cast<float>(data[(y * width + x) * channels + 0]) * inv,
+                             static_cast<float>(data[(y * width + x) * channels + 1]) * inv,
+                             static_cast<float>(data[(y * width + x) * channels + 2]) * inv};
         }
     }
     stbi_image_free(data);
-    std::cout<<"successfully load "<<path<<std::endl;
+    std::cout << "successfully load " << path << std::endl;
     return t;
 }
-auto LoadSRGBImage(const std::string& path){
+auto LoadSRGBImage(const std::string &path)
+{
     stbi_set_flip_vertically_on_load(true);
-    int width,height,channels;
-    auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
-    assert(channels==3);
-    if(!data) throw std::runtime_error("load srgb image failed");
-    Texture<float3> t(width,height);
-    constexpr float inv = 1.f/255.f;
-    for(int x = 0;x<width;x++){
-        for(int y = 0;y<height;y++){
-            t(x,y) = float3{std::pow(static_cast<float>(data[(y*width+x)*channels+0])*inv,2.2f),
-                            std::pow(static_cast<float>(data[(y*width+x)*channels+1])*inv,2.2f),
-                            std::pow(static_cast<float>(data[(y*width+x)*channels+2])*inv,2.2f)};
+    int width, height, channels;
+    auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    assert(channels == 3);
+    if (!data)
+        throw std::runtime_error("load srgb image failed");
+    Texture<float3> t(width, height);
+    constexpr float inv = 1.f / 255.f;
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            t(x, y) = float3{std::pow(static_cast<float>(data[(y * width + x) * channels + 0]) * inv, 2.2f),
+                             std::pow(static_cast<float>(data[(y * width + x) * channels + 1]) * inv, 2.2f),
+                             std::pow(static_cast<float>(data[(y * width + x) * channels + 2]) * inv, 2.2f)};
         }
     }
     stbi_image_free(data);
-    std::cout<<"successfully load "<<path<<std::endl;
+    std::cout << "successfully load " << path << std::endl;
     return t;
 }
-auto LoadXYZImage(const std::string& path){
+auto LoadXYZImage(const std::string &path)
+{
     stbi_set_flip_vertically_on_load(true);
-    int width,height,channels;
-    auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
-    assert(channels==3);
-    if(!data) throw std::runtime_error("load xyz image failed");
-    Texture<float3> t(width,height);
-    constexpr float inv = 2.f/255.f;
-    for(int x = 0;x<width;x++){
-        for(int y = 0;y<height;y++){
-            t(x,y) = float3{static_cast<float>(data[(y*width+x)*channels+0])*inv-1.f,
-                            static_cast<float>(data[(y*width+x)*channels+1])*inv-1.f,
-                            static_cast<float>(data[(y*width+x)*channels+2])*inv-1.f};
+    int width, height, channels;
+    auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    assert(channels == 3);
+    if (!data)
+        throw std::runtime_error("load xyz image failed");
+    Texture<float3> t(width, height);
+    constexpr float inv = 2.f / 255.f;
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            t(x, y) = float3{static_cast<float>(data[(y * width + x) * channels + 0]) * inv - 1.f,
+                             static_cast<float>(data[(y * width + x) * channels + 1]) * inv - 1.f,
+                             static_cast<float>(data[(y * width + x) * channels + 2]) * inv - 1.f};
         }
     }
     stbi_image_free(data);
-    std::cout<<"successfully load "<<path<<std::endl;
+    std::cout << "successfully load " << path << std::endl;
     return t;
 }
-auto LoadRImage(const std::string& path){
+auto LoadRImage(const std::string &path)
+{
     stbi_set_flip_vertically_on_load(true);
-    int width,height,channels;
-    auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
-    assert(channels==1);
-    if(!data) throw std::runtime_error("load r image failed");
-    Texture<float> t(width,height);
-    constexpr float inv = 1.f/255.f;
-    for(int x = 0;x<width;x++){
-        for(int y = 0;y<height;y++){
-            t(x,y) = static_cast<float>(data[(y*width+x)*channels+0])*inv;
+    int width, height, channels;
+    auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    assert(channels == 1);
+    if (!data)
+        throw std::runtime_error("load r image failed");
+    Texture<float> t(width, height);
+    constexpr float inv = 1.f / 255.f;
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            t(x, y) = static_cast<float>(data[(y * width + x) * channels + 0]) * inv;
         }
     }
     stbi_image_free(data);
-    std::cout<<"successfully load "<<path<<std::endl;
+    std::cout << "successfully load " << path << std::endl;
     return t;
 }
 
-auto LoadSRImage(const std::string& path){
+auto LoadSRImage(const std::string &path)
+{
     stbi_set_flip_vertically_on_load(true);
-    int width,height,channels;
-    auto data = stbi_load(path.c_str(),&width,&height,&channels,0);
-    assert(channels==1);
-    if(!data) throw std::runtime_error("load r image failed");
-    Texture<float> t(width,height);
-    constexpr float inv = 1.f/255.f;
-    for(int x = 0;x<width;x++){
-        for(int y = 0;y<height;y++){
-            t(x,y) = std::pow(static_cast<float>(data[(y*width+x)*channels+0])*inv,2.2f);
+    int width, height, channels;
+    auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    assert(channels == 1);
+    if (!data)
+        throw std::runtime_error("load r image failed");
+    Texture<float> t(width, height);
+    constexpr float inv = 1.f / 255.f;
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            t(x, y) = std::pow(static_cast<float>(data[(y * width + x) * channels + 0]) * inv, 2.2f);
         }
     }
     stbi_image_free(data);
-    std::cout<<"successfully load "<<path<<std::endl;
+    std::cout << "successfully load " << path << std::endl;
     return t;
 }
-
 
 Mesh *Model::getMesh()
 {
@@ -128,12 +144,10 @@ Texture<float> *Model::getMetallicMap()
     return &metallic;
 }
 Model::Model(Model &&rhs) noexcept
-:albedo(std::move(rhs.albedo)),normal(std::move(rhs.normal)),
-      ambientO(std::move(rhs.ambientO)),
-roughness(std::move(rhs.roughness)),metallic(std::move(rhs.metallic)),
-      mesh(std::move(rhs.mesh)),model_matrix(rhs.model_matrix)
+    : albedo(std::move(rhs.albedo)), normal(std::move(rhs.normal)), ambientO(std::move(rhs.ambientO)),
+      roughness(std::move(rhs.roughness)), metallic(std::move(rhs.metallic)), mesh(std::move(rhs.mesh)),
+      model_matrix(rhs.model_matrix)
 {
-
 }
 void Model::setModelMatrix(mat4 m)
 {
@@ -141,16 +155,32 @@ void Model::setModelMatrix(mat4 m)
 }
 void Model::loadModelMatrix(ModelTransform desc)
 {
-    auto m1= rotate(mat4(1.f),radians(desc.rotate_x),float3{1.f,0.f,0.f});
-    auto m2 = rotate(mat4(1.f),radians(desc.rotate_y),float3{0.f,1.f,0.f});
-    auto m3 = rotate(mat4(1.f),radians(desc.rotate_z),float3{0.f,0.f,1.f});
-    auto s = glm::scale(mat4(1.f),float3{desc.scale_x,desc.scale_y,desc.scale_z});
-    auto t = glm::translate(mat4(1.f),float3{desc.transfer_x,desc.transfer_y,desc.transfer_z});
+    auto m1 = rotate(mat4(1.f), radians(desc.rotate_x), float3{1.f, 0.f, 0.f});
+    auto m2 = rotate(mat4(1.f), radians(desc.rotate_y), float3{0.f, 1.f, 0.f});
+    auto m3 = rotate(mat4(1.f), radians(desc.rotate_z), float3{0.f, 0.f, 1.f});
+    auto s = glm::scale(mat4(1.f), float3{desc.scale_x, desc.scale_y, desc.scale_z});
+    auto t = glm::translate(mat4(1.f), float3{desc.transfer_x, desc.transfer_y, desc.transfer_z});
     this->model_matrix = t * s * m3 * m2 * m1 * this->model_matrix;
 }
 void Model::loadMesh(const std::string &mesh_path)
 {
     this->mesh = std::make_unique<Mesh>(mesh_path);
+    box.min_p = {std::numeric_limits<float>::max(), std::numeric_limits<float>::max(),
+                 std::numeric_limits<float>::max()};
+    box.max_p = {-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(),
+                 -std::numeric_limits<float>::max()};
+    for (auto &tri : mesh->triangles)
+    {
+        for (auto &v : tri.vertices)
+        {
+            box.min_p.x = std::min(box.min_p.x, v.pos.x);
+            box.min_p.y = std::min(box.min_p.y, v.pos.y);
+            box.min_p.z = std::min(box.min_p.z, v.pos.z);
+            box.max_p.x = std::max(box.max_p.x, v.pos.x);
+            box.max_p.y = std::max(box.max_p.y, v.pos.y);
+            box.max_p.z = std::max(box.max_p.z, v.pos.z);
+        }
+    }
 }
 void Model::loadAlbedoMap(const std::string &albedo_path)
 {
@@ -171,4 +201,8 @@ void Model::loadRoughnessMap(const std::string &roughness_path)
 void Model::loadMetallicMap(const std::string &metallic_path)
 {
     this->metallic = LoadRImage(metallic_path);
+}
+const BoundBox3D &Model::getBoundBox() const
+{
+    return box;
 }

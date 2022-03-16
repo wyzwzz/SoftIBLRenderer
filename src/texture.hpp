@@ -1,18 +1,14 @@
-//
-// Created by wyz on 2022/2/17.
-//
 #pragma once
 
-#include "common.hpp"
 #include "buffer.hpp"
+#include "common.hpp"
 #include <algorithm>
-template <typename T>
-using Texture = Image<T>;
+template <typename T> using Texture = Image<T>;
 
-
-struct LinearSampler{
-    template <typename T>
-    static auto sample2D(const Texture<T>& tex,float u,float v){
+struct LinearSampler
+{
+    template <typename T> static auto sample2D(const Texture<T> &tex, float u, float v)
+    {
         u = std::clamp(u, 0.0f, 1.0f) * (tex.width() - 1);
         v = std::clamp(v, 0.0f, 1.0f) * (tex.height() - 1);
         int u0 = std::clamp(static_cast<int>(u), 0, static_cast<int>(tex.width() - 1));

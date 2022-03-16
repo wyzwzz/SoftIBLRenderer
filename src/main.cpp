@@ -1,12 +1,11 @@
-//
-// Created by wyz on 2022/2/14.
-//
 #include "engine.hpp"
-#include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-int main(int argc, char** argv){
-    try{
+#include <iostream>
+int main(int argc, char **argv)
+{
+    try
+    {
         Engine engine;
 
         engine.startup();
@@ -15,9 +14,9 @@ int main(int argc, char** argv){
 
         engine.shutdown();
     }
-    catch (const std::exception& err)
+    catch (const std::exception &err)
     {
-        std::cout<<err.what()<<std::endl;
+        std::cout << err.what() << std::endl;
     }
     return 0;
 }

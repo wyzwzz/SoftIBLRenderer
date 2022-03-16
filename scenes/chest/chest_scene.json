@@ -1,12 +1,12 @@
 {
   "model_count": 1,
   "model_1": {
-    "mesh": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\chest\\meshes\\chest_mesh.obj",
-    "albedo": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\chest\\materials\\chest\\chest_albedo.png",
-    "normal": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\chest\\materials\\chest\\chest_normal.png",
-    "ambient": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\chest\\materials\\chest\\chest_ao.png",
-    "roughness": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\chest\\materials\\chest\\chest_rough.png",
-    "metallic": "C:\\Users\\wyz\\projects\\SoftPBRRenderer\\scenes\\chest\\materials\\chest\\chest_metal.png"
+    "mesh": "../scenes/chest/meshes/chest_mesh.obj",
+    "albedo": "../scenes/chest/materials/chest/chest_albedo.png",
+    "normal": "../scenes/chest/materials/chest/chest_normal.png",
+    "ambient": "../scenes/chest/materials/chest/chest_ao.png",
+    "roughness": "../scenes/chest/materials/chest/chest_rough.png",
+    "metallic": "../scenes/chest/materials/chest/chest_metal.png"
   },
   "light_count": 2,
   "light_1": {

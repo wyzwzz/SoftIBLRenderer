@@ -1,19 +1,14 @@
-//
-// Created by wyz on 2022/2/15.
-//
-#include "displayer.hpp"
 #include "engine.hpp"
+#include "displayer.hpp"
 #include "input.hpp"
 #include "renderer.hpp"
 #include "util.hpp"
 Engine::Engine()
 {
-
 }
 
 Engine::~Engine()
 {
-
 }
 
 void Engine::startup()
@@ -26,7 +21,6 @@ void Engine::startup()
 
 void Engine::shutdown()
 {
-
 }
 
 void Engine::run()
@@ -35,19 +29,25 @@ void Engine::run()
 
     uint32_t delta_t = 0;
     uint32_t last_t = 0;
-    while(!exit){
-//        START_TIMER
+    while (!exit)
+    {
+
         last_t = SDL_GetTicks();
 
-        input_processor->processInput(exit,delta_t);
+        input_processor->processInput(exit, delta_t);
 
+        START_TIMER
         soft_renderer->clearFrameBuffer();
+        STOP_TIMER("clear framebuffer")
 
+        START_TIMER
         soft_renderer->render();
+        STOP_TIMER("render a frame")
 
+        START_TIMER
         displayer->draw(soft_renderer->getImage());
+        STOP_TIMER("draw frame")
 
         delta_t = SDL_GetTicks() - last_t;
-//        STOP_TIMER("render a frame")
     }
 }

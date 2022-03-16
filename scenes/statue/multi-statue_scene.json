@@ -1,0 +1,103 @@
+{
+  "model_count":7,
+  "model_1":{
+    "mesh": "../scenes/statue/meshes/statue_mesh.obj",
+    "albedo": "../scenes/statue/materials/marble/marble_albedo.png",
+    "normal": "../scenes/statue/materials/marble/marble_normal.png",
+    "ambient": "../scenes/statue/materials/marble/marble_ao.png",
+    "roughness": "../scenes/statue/materials/marble/marble_rough.png",
+    "metallic": "../scenes/statue/materials/marble/marble_metal.png",
+    "transform": {
+      "rotation": [-90,0,0],
+      "scale": [0.5,0.5,0.5],
+      "transfer": [0,-3,0]
+    }
+  },
+  "model_2":{
+    "mesh": "../scenes/statue/meshes/statue_mesh.obj",
+    "albedo": "../scenes/statue/materials/marble/marble_albedo.png",
+    "normal": "../scenes/statue/materials/marble/marble_normal.png",
+    "ambient": "../scenes/statue/materials/marble/marble_ao.png",
+    "roughness": "../scenes/statue/materials/marble/marble_rough.png",
+    "metallic": "../scenes/statue/materials/marble/marble_metal.png",
+    "transform": {
+      "rotation": [-90,0,0],
+      "scale": [0.5,0.5,0.5],
+      "transfer": [0,-3,-3]
+    }
+  },
+  "model_3":{
+    "mesh": "../scenes/statue/meshes/statue_mesh.obj",
+    "albedo": "../scenes/statue/materials/marble/marble_albedo.png",
+    "normal": "../scenes/statue/materials/marble/marble_normal.png",
+    "ambient": "../scenes/statue/materials/marble/marble_ao.png",
+    "roughness": "../scenes/statue/materials/marble/marble_rough.png",
+    "metallic": "../scenes/statue/materials/marble/marble_metal.png",
+    "transform": {
+      "rotation": [-90,0,0],
+      "scale": [0.5,0.5,0.5],
+      "transfer": [0,-3,-6]
+    }
+  },
+  "model_4":{
+    "mesh": "../scenes/statue/meshes/statue_mesh.obj",
+    "albedo": "../scenes/statue/materials/marble/marble_albedo.png",
+    "normal": "../scenes/statue/materials/marble/marble_normal.png",
+    "ambient": "../scenes/statue/materials/marble/marble_ao.png",
+    "roughness": "../scenes/statue/materials/marble/marble_rough.png",
+    "metallic": "../scenes/statue/materials/marble/marble_metal.png",
+    "transform": {
+      "rotation": [-90,0,0],
+      "scale": [0.5,0.5,0.5],
+      "transfer": [0,-3,-9]
+    }
+  },
+  "model_5":{
+    "mesh": "../scenes/statue/meshes/statue_mesh.obj",
+    "albedo": "../scenes/statue/materials/marble/marble_albedo.png",
+    "normal": "../scenes/statue/materials/marble/marble_normal.png",
+    "ambient": "../scenes/statue/materials/marble/marble_ao.png",
+    "roughness": "../scenes/statue/materials/marble/marble_rough.png",
+    "metallic": "../scenes/statue/materials/marble/marble_metal.png",
+    "transform": {
+      "rotation": [-90,0,0],
+      "scale": [0.5,0.5,0.5],
+      "transfer": [0,-3,-12]
+    }
+  },
+  "model_6":{
+    "mesh": "../scenes/statue/meshes/statue_mesh.obj",
+    "albedo": "../scenes/statue/materials/marble/marble_albedo.png",
+    "normal": "../scenes/statue/materials/marble/marble_normal.png",
+    "ambient": "../scenes/statue/materials/marble/marble_ao.png",
+    "roughness": "../scenes/statue/materials/marble/marble_rough.png",
+    "metallic": "../scenes/statue/materials/marble/marble_metal.png",
+    "transform": {
+      "rotation": [-90,0,0],
+      "scale": [0.5,0.5,0.5],
+      "transfer": [0,-3,-15]
+    }
+  },
+  "model_7": {
+    "mesh": "../scenes/statue/meshes/statue_mesh.obj",
+    "albedo": "../scenes/statue/materials/marble/marble_albedo.png",
+    "normal": "../scenes/statue/materials/marble/marble_normal.png",
+    "ambient": "../scenes/statue/materials/marble/marble_ao.png",
+    "roughness": "../scenes/statue/materials/marble/marble_rough.png",
+    "metallic": "../scenes/statue/materials/marble/marble_metal.png",
+    "transform": {
+      "rotation": [0,0,0],
+      "scale": [10,10,10],
+      "transfer": [0,0,2]
+    }
+  },
+  "light_count": 2,
+  "light_1": {
+    "position": [3.0,3.0,3.0],
+    "radiance": [110.0,110.0,110.0]
+  },
+  "light_2": {
+    "position": [3.0,3.0,-3.0],
+    "radiance": [110.0,110.0,110.0]
+  }
+}

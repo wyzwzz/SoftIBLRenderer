@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(SoftPBRRenderer LANGUAGES CXX)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+
 include(third_party/glm.cmake)
 include(third_party/sdl2.cmake)
 

@@ -1,22 +1,20 @@
-//
-// Created by wyz on 2022/2/15.
-//
 #pragma once
-#include "model.hpp"
 #include "camera.hpp"
 #include "light.hpp"
+#include "model.hpp"
 #include <memory>
-class Scene{
+class Scene
+{
   public:
     Scene();
-    const std::vector<Model>& getModels();
-    std::vector<Model*> getVisibleModels();
-    const std::vector<Light>& getLights();
-    Camera* getCamera();
-    void loadScene(const std::string&);
+    const std::vector<Model> &getModels();
+    std::vector<Model *> getVisibleModels();
+    const std::vector<Light> &getLights();
+    Camera *getCamera();
+    void loadScene(const std::string &);
     void addModel(Model model);
-    void addLight(const Light& light);
-    void setCamera(const Camera& camera);
+    void addLight(const Light &light);
+    void setCamera(const Camera &camera);
     void clearModels();
     void clearLights();
     void clearScene();
