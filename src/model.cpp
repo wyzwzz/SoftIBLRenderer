@@ -115,31 +115,54 @@ auto LoadSRImage(const std::string &path)
     return t;
 }
 
-Mesh *Model::getMesh()
+auto LoadHDR(const std::string& path){
+    stbi_set_flip_vertically_on_load(false);
+    int w,h,nComp;
+    auto d = stbi_loadf(path.c_str(),&w,&h,&nComp,0);
+    if(!d){
+        throw std::runtime_error("load image failed");
+    }
+    if(nComp == 3){
+        return Image2D<float3>(w,h,reinterpret_cast<float3*>(d));
+    }
+    else if(nComp == 4){
+        Image2D<float3> image(w,h);
+        auto p = image.data();
+        for(int i = 0; i < w * h; ++i){
+            p[i] = {d[i*3],d[i*3+1],d[i*3+2]};
+        }
+        return image;
+    }
+    else{
+        throw std::runtime_error("invalid image component");
+    }
+}
+
+const Mesh *Model::getMesh() const
 {
     return mesh.get();
 }
-mat4 Model::getModelMatrix()
+mat4 Model::getModelMatrix() const
 {
     return model_matrix;
 }
-Texture<float3> *Model::getAlbedoMap()
+const Texture<float3> *Model::getAlbedoMap() const
 {
     return &albedo;
 }
-Texture<float3> *Model::getNormalMap()
+const Texture<float3> *Model::getNormalMap() const
 {
     return &normal;
 }
-Texture<float> *Model::getAOMap()
+const Texture<float> *Model::getAOMap() const
 {
     return &ambientO;
 }
-Texture<float> *Model::getRoughnessMap()
+const Texture<float> *Model::getRoughnessMap() const
 {
     return &roughness;
 }
-Texture<float> *Model::getMetallicMap()
+const Texture<float> *Model::getMetallicMap() const
 {
     return &metallic;
 }
@@ -205,4 +228,15 @@ void Model::loadMetallicMap(const std::string &metallic_path)
 const BoundBox3D &Model::getBoundBox() const
 {
     return box;
+}
+void Model::loadEnvironmentMap(const std::string& path){
+
+    auto hdr = LoadHDR(path);
+    this->env_mipmap = std::make_shared<MipMap2D<float3>>();
+    this->env_mipmap->generate(hdr);
+    std::cout<<"load and generate environment map successfully"<<std::endl;
+}
+const std::shared_ptr<MipMap2D<float3>>& Model::getEnvironmentMap() const
+{
+    return env_mipmap;
 }

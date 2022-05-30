@@ -26,7 +26,7 @@ inline auto interpolate(float alpha, float beta, float gamma, const T &v1, const
     return (alpha * v1 + beta * v2 + gamma * v3) * inv_weight;
 }
 
-bool Rasterizer::rasterTriangle(Triangle &triangle, IShader &shader, Image<color4b> &pixels, ZBuffer &zBuffer)
+bool Rasterizer::rasterTriangle(Triangle &triangle,const IShader &shader, Image<color4b> &pixels, ZBuffer &zBuffer)
 {
     const auto &v = triangle.vertices;
     float cc1 = v[0].gl_Position.x * (v[1].gl_Position.y - v[2].gl_Position.y) +
@@ -67,13 +67,14 @@ bool Rasterizer::rasterTriangle(Triangle &triangle, IShader &shader, Image<color
                                        v[0].gl_Position.z, v[1].gl_Position.z, v[2].gl_Position.z, inv_weight);
             if (zBuffer.zTest(c, r, frag_z))
             {
-                auto frag_pos = interpolate(alpha, beta, gamma, v[0].pos, v[1].pos, v[2].pos, inv_weight);
-                auto frag_normal = interpolate(alpha, beta, gamma, v[0].normal, v[1].normal, v[2].normal, inv_weight);
-                auto frag_texcoord =
-                    interpolate(alpha, beta, gamma, v[0].tex_coord, v[1].tex_coord, v[2].tex_coord, inv_weight);
-                auto pixel_color = shader.fragmentShader(frag_pos, frag_normal, frag_texcoord);
+                auto frag_pos      = interpolate(alpha, beta, gamma, v[0].pos, v[1].pos, v[2].pos, inv_weight);
+                auto frag_normal   = interpolate(alpha, beta, gamma, v[0].normal, v[1].normal, v[2].normal, inv_weight);
+                auto frag_texcoord = interpolate(alpha, beta, gamma, v[0].tex_coord, v[1].tex_coord, v[2].tex_coord, inv_weight);
+
+                auto pixel_color   = shader.fragmentShader(frag_pos, frag_normal, frag_texcoord);
 
                 gammaAdjust(pixel_color);
+
                 pixels(c, pixels.height() - 1 - r) = pixel_color;
 
                 zBuffer.updateZBuffer(c, r, frag_z);
@@ -84,15 +85,11 @@ bool Rasterizer::rasterTriangle(Triangle &triangle, IShader &shader, Image<color
 }
 void Rasterizer::triangleBoundBox(const Triangle &triangle, int &xMin, int &yMin, int &xMax, int &yMax, int w, int h)
 {
-    xMax = std::max(
-        {triangle.vertices[0].gl_Position.x, triangle.vertices[1].gl_Position.x, triangle.vertices[2].gl_Position.x});
-    xMin = std::min(
-        {triangle.vertices[0].gl_Position.x, triangle.vertices[1].gl_Position.x, triangle.vertices[2].gl_Position.x});
+    xMax = std::max({triangle.vertices[0].gl_Position.x, triangle.vertices[1].gl_Position.x, triangle.vertices[2].gl_Position.x});
+    xMin = std::min({triangle.vertices[0].gl_Position.x, triangle.vertices[1].gl_Position.x, triangle.vertices[2].gl_Position.x});
 
-    yMax = std::max(
-        {triangle.vertices[0].gl_Position.y, triangle.vertices[1].gl_Position.y, triangle.vertices[2].gl_Position.y});
-    yMin = std::min(
-        {triangle.vertices[0].gl_Position.y, triangle.vertices[1].gl_Position.y, triangle.vertices[2].gl_Position.y});
+    yMax = std::max({triangle.vertices[0].gl_Position.y, triangle.vertices[1].gl_Position.y, triangle.vertices[2].gl_Position.y});
+    yMin = std::min({triangle.vertices[0].gl_Position.y, triangle.vertices[1].gl_Position.y, triangle.vertices[2].gl_Position.y});
 
     xMax = std::min(xMax, w - 1);
     xMin = std::max(xMin, 0);
@@ -105,14 +102,11 @@ std::tuple<float, float, float> Rasterizer::computeBarycentric2D(float x, float 
 {
     const auto &v = triangle.vertices;
     float c1 = (x * (v[1].gl_Position.y - v[2].gl_Position.y) + y * (v[2].gl_Position.x - v[1].gl_Position.x) +
-                v[1].gl_Position.x * v[2].gl_Position.y - v[2].gl_Position.x * v[1].gl_Position.y) /
-               v[0].gl_Position.w;
+                v[1].gl_Position.x * v[2].gl_Position.y - v[2].gl_Position.x * v[1].gl_Position.y) / v[0].gl_Position.w;
     float c2 = (x * (v[2].gl_Position.y - v[0].gl_Position.y) + y * (v[0].gl_Position.x - v[2].gl_Position.x) +
-                v[2].gl_Position.x * v[0].gl_Position.y - v[0].gl_Position.x * v[2].gl_Position.y) /
-               v[1].gl_Position.w;
+                v[2].gl_Position.x * v[0].gl_Position.y - v[0].gl_Position.x * v[2].gl_Position.y) / v[1].gl_Position.w;
     float c3 = (x * (v[0].gl_Position.y - v[1].gl_Position.y) + y * (v[1].gl_Position.x - v[0].gl_Position.x) +
-                v[0].gl_Position.x * v[1].gl_Position.y - v[1].gl_Position.x * v[0].gl_Position.y) /
-               v[2].gl_Position.w;
+                v[0].gl_Position.x * v[1].gl_Position.y - v[1].gl_Position.x * v[0].gl_Position.y) / v[2].gl_Position.w;
     return {c1, c2, c3};
 }
 bool Rasterizer::insideTriangle(float alpha, float beta, float gamma)

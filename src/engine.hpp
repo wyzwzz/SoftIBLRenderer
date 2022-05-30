@@ -13,7 +13,6 @@ class Engine
     void startup();
     void run();
     void shutdown();
-
   private:
     std::shared_ptr<Scene> scene;
     std::unique_ptr<Displayer> displayer;

@@ -9,8 +9,11 @@ class Scene
     Scene();
     const std::vector<Model> &getModels();
     std::vector<Model *> getVisibleModels();
+    const std::vector<Light> &getLights() const;
     const std::vector<Light> &getLights();
-    Camera *getCamera();
+    const Model* getSkyBox() const;
+    const Camera *getCamera() const;
+    Camera* getCamera();
     void loadScene(const std::string &);
     void addModel(Model model);
     void addLight(const Light &light);
@@ -18,9 +21,11 @@ class Scene
     void clearModels();
     void clearLights();
     void clearScene();
-
+  private:
+    void createSkyBoxModel(const std::shared_ptr<MipMap2D<float3>>&);
   private:
     std::vector<Model> models;
     Camera camera;
     std::vector<Light> lights;
+    std::unique_ptr<Model> skybox;
 };

@@ -8,7 +8,33 @@ SoftRenderer::SoftRenderer(const std::shared_ptr<Scene> &scene) : scene(scene)
 {
     init();
 }
+void SoftRenderer::render(const IShader &shader,const Model& model,bool clip)
+{
+    int triangle_count = model.getMesh()->triangles.size();
+    std::cout << "render model triangle count " << triangle_count << std::endl;
+    std::atomic<int> raster_count = 0;
+#pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < triangle_count; i++)
+    {
+        const auto &triangle = model.getMesh()->triangles[i];
 
+        if (backFaceCulling(triangle, model.getModelMatrix()))
+            continue;
+
+        auto triangle_primitive = shader.vertexShader(triangle);
+
+        if (clip && clipTriangle(triangle_primitive))
+            continue;
+
+        triangle_primitive.Homogenization();
+
+        bool r = Rasterizer::rasterTriangle(triangle_primitive, shader, pixels, *z_buffer);
+        if (r)
+            raster_count++;
+    }
+    std::cout << "raster triangle count " << raster_count << std::endl;
+
+}
 void SoftRenderer::render()
 {
     auto models = scene->getVisibleModels();
@@ -107,3 +133,4 @@ void SoftRenderer::clearFrameBuffer()
     pixels.clear();
     z_buffer->clear();
 }
+

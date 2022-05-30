@@ -37,10 +37,11 @@ std::vector<Model *> Scene::getVisibleModels()
         Frustum frustum;
         ExtractFrustumFromProjViewMatrix(vp, frustum);
         auto visibility = GetBoxVisibility(frustum, box);
-        if (visibility != BoxVisibility::Invisible)
-        {
+        //todo
+//        if (visibility != BoxVisibility::Invisible)
+//        {
             ms.emplace_back(&model);
-        }
+//        }
     }
     // sort by model center to camera distance in order to draw near model first
     std::sort(ms.begin(), ms.end(), [&](Model *m1, Model *m2) {
@@ -53,7 +54,7 @@ std::vector<Model *> Scene::getVisibleModels()
     });
     return ms;
 }
-Camera *Scene::getCamera()
+const Camera *Scene::getCamera() const
 {
     return &camera;
 }
@@ -82,7 +83,7 @@ Scene::Scene()
 {
 
 }
-const std::vector<Light> &Scene::getLights()
+const std::vector<Light> &Scene::getLights() const
 {
     return lights;
 }
@@ -111,6 +112,7 @@ void Scene::loadScene(const std::string &filename)
         auto ambient_path = model.at("ambient");
         auto roughness_path = model.at("roughness");
         auto metallic_path = model.at("metallic");
+
         Model load_model;
         load_model.loadMesh(mesh_path);
         load_model.loadAlbedoMap(albedo_path);
@@ -118,6 +120,11 @@ void Scene::loadScene(const std::string &filename)
         load_model.loadAOMap(ambient_path);
         load_model.loadRoughnessMap(roughness_path);
         load_model.loadMetallicMap(metallic_path);
+        if(model.find("environment") != model.end()){
+            auto environment_path = model.at("environment");
+            load_model.loadEnvironmentMap(environment_path);
+            createSkyBoxModel(load_model.getEnvironmentMap());
+        }
         if (model.find("transform") != model.end())
         {
             auto model_transform = model.at("transform");
@@ -144,4 +151,94 @@ void Scene::loadScene(const std::string &filename)
         Light l{float3{position[0], position[1], position[2]}, float3{radiance[0], radiance[1], radiance[2]}};
         addLight(l);
     }
+}
+const Model *Scene::getSkyBox() const
+{
+    return skybox.get();
+}
+const std::vector<Light> &Scene::getLights()
+{
+    return lights;
+}
+Camera *Scene::getCamera()
+{
+    return &camera;
+}
+void CreateCube(Mesh& mesh){
+    using Vertex = Triangle::Vertex;
+    static Vertex cube[8] = {
+        {{},{-1.f,-1.f,-1.f},{},{}},
+        {{},{1.f,-1.f,-1.f},{},{}},
+        {{},{1.f,1.f,-1.f},{},{}},
+        {{},{-1.f,1.f,-1.f},{},{}},
+        {{},{-1.f,-1.f,1.f},{},{}},
+        {{},{1.f,-1.f,1.f},{},{}},
+        {{},{1.f,1.f,1.f},{},{}},
+        {{},{-1.f,1.f,1.f},{},{}}
+    };
+    std::vector<Triangle> cube_triangles;
+    //total 12 triangles
+    //
+    cube_triangles.emplace_back(Triangle{cube[0],cube[1],cube[2]});
+    cube_triangles.emplace_back(Triangle{cube[0],cube[2],cube[3]});
+    cube_triangles.emplace_back(Triangle{cube[1],cube[6],cube[2]});
+    cube_triangles.emplace_back(Triangle{cube[1],cube[5],cube[6]});
+    cube_triangles.emplace_back(Triangle{cube[2],cube[6],cube[3]});
+    cube_triangles.emplace_back(Triangle{cube[3],cube[6],cube[7]});
+    cube_triangles.emplace_back(Triangle{cube[0],cube[3],cube[7]});
+    cube_triangles.emplace_back(Triangle{cube[0],cube[7],cube[4]});
+    cube_triangles.emplace_back(Triangle{cube[0],cube[4],cube[5]});
+    cube_triangles.emplace_back(Triangle{cube[0],cube[5],cube[1]});
+    cube_triangles.emplace_back(Triangle{cube[4],cube[6],cube[5]});
+    cube_triangles.emplace_back(Triangle{cube[4],cube[7],cube[6]});
+    mesh.triangles = std::move(cube_triangles);
+}
+void CreateSphere(Mesh& mesh){
+    static constexpr uint32_t U_SEGMENTS = 64;
+    static constexpr uint32_t V_SEGMENTS = 64;
+    static constexpr float PI = 3.14159265359f;
+    using Vertex = Triangle::Vertex;
+    std::vector<Vertex> vertices;
+    for(int v = 0; v <= V_SEGMENTS; ++v){
+        float theta = (v - 1.f) / V_SEGMENTS * PI;
+        for(int u = 0; u <= U_SEGMENTS; ++u){
+            float phi = (u - 1.f) / U_SEGMENTS * PI * 2;
+            float x = std::cos(phi) * std::sin(theta);
+            float y = std::cos(theta);
+            float z = std::sin(phi) * std::sin(theta);
+            Vertex v;
+            v.pos = {x,y,z};
+            vertices.emplace_back(v);
+        }
+    }
+    std::vector<Triangle> triangles;
+    for(int y = 0; y < V_SEGMENTS; ++y){
+        for(int x = 0; x < U_SEGMENTS; ++x){
+            triangles.emplace_back(Triangle{
+                    vertices[x + y * (U_SEGMENTS + 1)],
+                    vertices[x + (y + 1) * (U_SEGMENTS + 1)],
+                    vertices[x + 1 + y * (U_SEGMENTS + 1)]
+                });
+            triangles.emplace_back(Triangle{
+               vertices[x + 1 + y * (U_SEGMENTS + 1)],
+                vertices[x + (y + 1) * (U_SEGMENTS + 1)],
+                vertices[x + 1 + (y + 1) * (U_SEGMENTS + 1)]
+            });
+        }
+    }
+    mesh.triangles = std::move(triangles);
+}
+void Scene::createSkyBoxModel(const std::shared_ptr<MipMap2D<float3>>& envMap)
+{
+    skybox.reset();
+    skybox = std::make_unique<Model>();
+    skybox->env_mipmap = envMap;
+    skybox->mesh = std::make_unique<Mesh>();
+
+#ifdef USE_CUBE_SKY_BOX
+    CreateCube(*skybox->mesh);
+#else
+    CreateSphere(*skybox->mesh);
+#endif
+
 }

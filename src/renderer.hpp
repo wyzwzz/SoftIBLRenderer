@@ -3,12 +3,15 @@
 #include "scene.hpp"
 #include "zbuffer.hpp"
 #include <memory>
+class IShader;
 class SoftRenderer
 {
   public:
     explicit SoftRenderer(const std::shared_ptr<Scene> &scene);
 
     void render();
+
+    void render(const IShader& shader,const Model& model,bool clip = false);
 
     const Image<color4b> &getImage();
 

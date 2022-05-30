@@ -28,6 +28,7 @@ class Triangle
 class Mesh
 {
   public:
+    Mesh() = default;
     explicit Mesh(const std::string &path);
     std::vector<Triangle> triangles;
 };
