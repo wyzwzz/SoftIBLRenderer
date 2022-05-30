@@ -7,13 +7,13 @@
     "ambient": "../scenes/statue/materials/marble/marble_ao.png",
     "roughness": "../scenes/statue/materials/marble/marble_rough.png",
     "metallic": "../scenes/statue/materials/marble/marble_metal.png",
-    "environment": "../scenes/hdr/environment_day.hdr",
     "transform": {
       "rotation": [-90,0,0],
       "scale": [0.5,0.5,0.5],
       "transfer": [0,-3,0]
     }
   },
+  "environment": "../scenes/hdr/environment_dusk.hdr",
   "light_count": 2,
   "light_1": {
     "position": [3.0,3.0,3.0],

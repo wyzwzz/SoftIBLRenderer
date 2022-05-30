@@ -23,6 +23,7 @@ void Engine::startup()
 void Engine::shutdown()
 {
 }
+
 static void update_pbr_shader(PBRShader& pbr_shader,const Scene& scene){
     pbr_shader.view = scene.getCamera()->getViewMatrix();
     pbr_shader.projection = scene.getCamera()->getProjMatrix();
@@ -55,6 +56,11 @@ static void update_sky_shader(SkyShader& sky_shader,const Model& model){
     sky_shader.model = model.getModelMatrix();
 
 }
+static void update_ibl_shader(IBLShader& ibl_shader,const Model& model){
+    ibl_shader.irradiance_map = &model.getIBL().irradiance_map;
+    ibl_shader.prefilter_map = &model.getIBL().prefilter_map;
+    ibl_shader.brdf_lut = &model.getIBL().brdf_lut;
+}
 void Engine::run()
 {
     bool exit = false;
@@ -65,8 +71,10 @@ void Engine::run()
     {
         static PBRShader pbr_shader;
         static SkyShader sky_shader;
+        static IBLShader ibl_shader;
         update_pbr_shader(pbr_shader,*scene);
         update_sky_shader(sky_shader,*scene);
+        update_pbr_shader(ibl_shader,*scene);
 
         last_t = SDL_GetTicks();
 
@@ -77,13 +85,16 @@ void Engine::run()
 //        STOP_TIMER("clear framebuffer")
 
 //        START_TIMER
-        auto models = scene->getVisibleModels();
-        for(auto model:models){
-            update_pbr_shader(pbr_shader,*model);
-            soft_renderer->render(pbr_shader,*model,true);
-        }
+
         auto sky_box = scene->getSkyBox();
         if(sky_box){
+            update_ibl_shader(ibl_shader,*sky_box);
+            auto models = scene->getVisibleModels();
+            for(auto model:models){
+                update_pbr_shader(ibl_shader,*model);
+                soft_renderer->render(ibl_shader,*model,true);
+            }
+
             //cube's vertex behind view point if perform mvp transform will cause error
             //opengl will clip these primitive and reconstruct them
             //this algorithm should be hard for me
@@ -91,6 +102,13 @@ void Engine::run()
             update_sky_shader(sky_shader,*sky_box);
             soft_renderer->render(sky_shader,*sky_box);
             std::cout<<"render sky box"<<std::endl;
+        }
+        else{
+            auto models = scene->getVisibleModels();
+            for(auto model:models){
+                update_pbr_shader(pbr_shader,*model);
+                soft_renderer->render(pbr_shader,*model,true);
+            }
         }
 //        soft_renderer->render();
 //        STOP_TIMER("render a frame")

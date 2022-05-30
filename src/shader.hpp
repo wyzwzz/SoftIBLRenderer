@@ -29,13 +29,8 @@ class SkyShader: public IShader{
 
     const MipMap2D<float3>* envMap;
 
-    constexpr static float2 invAtan = vec2(0.1591,0.3183);
-    float2 sampleSphericalMap(const float3& dir) const{
-        float2 uv = float2(atan(dir.z,dir.x),asin(-dir.y));
-        uv *= invAtan;//(-0.5,0.5)
-        uv += 0.5f;//(0,1)
-        return uv;
-    }
+
+
 
     const SkyShader* asSkyShader() const override{ return this; }
 
@@ -203,6 +198,56 @@ class PBRShader : public IShader
         float3 color = ambient + Lo;
 
         //todo tone mapping
+        color = ACESFitted(color);
+
+        return float3_to_color4b(color);
+    }
+};
+
+class IBLShader : public PBRShader{
+  public:
+    const Texture<float3>* irradiance_map;
+    const MipMap2D<float3>* prefilter_map;
+    const Texture<float2>* brdf_lut;
+    static float3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness){
+        return F0 + (max(float3(1.0f - roughness), F0) - F0) * std::pow(std::max(1.0f - cosTheta, 0.0f), 5.0f);
+    }
+    color4b fragmentShader(const float3 &inPos, const float3 &inNormal, const float2 &inTexCoord) const override{
+        float3 albedo = LinearSampler::sample2D(*albedoMap, inTexCoord.x, inTexCoord.y);
+        float metallic = LinearSampler::sample2D(*metallicMap, inTexCoord.x, inTexCoord.y);
+        float roughness = LinearSampler::sample2D(*roughnessMap, inTexCoord.x, inTexCoord.y);
+        float ao = LinearSampler::sample2D(*aoMap, inTexCoord.x, inTexCoord.y);
+        float3 N = normalize(inNormal);
+        float3 V = normalize(viewPos - inPos);
+        float3 R = normalize(dot(N,V)*N-V);
+
+        float3 F0 = float3(0.04f);
+        F0 = mix(F0,albedo,metallic);
+
+        float3 Lo = float3(0.f);
+
+        float NdotV = std::max(dot(N,V),0.f);
+
+        float3 F = fresnelSchlickRoughness(NdotV,F0,roughness);
+
+        float3 kS = F;
+        float3 kD = 1.f - kS;
+        kD *= 1.f - metallic;
+        float2 uv = sampleSphericalMap(N);
+        float3 irradiance = LinearSampler::sample2D(*irradiance_map,uv.x,uv.y);
+        float3 diffuse = irradiance * albedo;
+
+        uv = sampleSphericalMap(R);
+        float3 prefilter_color = LinearSampler::sample2D(*prefilter_map,uv.x,uv.y,roughness * (prefilter_map->levels() - 1));
+
+        float2 brdf = LinearSampler::sample2D(*brdf_lut,NdotV,roughness);
+
+        float3 specular = prefilter_color * (F * brdf.x + brdf.y);
+
+        float3 ambient = (kD * diffuse + specular) * ao;
+
+        float3 color = ambient + Lo;
+
         color = ACESFitted(color);
 
         return float3_to_color4b(color);

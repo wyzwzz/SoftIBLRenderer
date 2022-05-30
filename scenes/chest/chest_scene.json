@@ -7,7 +7,6 @@
     "ambient": "../scenes/chest/materials/chest/chest_ao.png",
     "roughness": "../scenes/chest/materials/chest/chest_rough.png",
     "metallic": "../scenes/chest/materials/chest/chest_metal.png",
-    "environment": "../scenes/hdr/environment_day.hdr"
   },
   "light_count": 2,
   "light_1": {

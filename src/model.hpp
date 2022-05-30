@@ -4,6 +4,18 @@
 #include "texture.hpp"
 #include <memory>
 class Scene;
+
+struct IBL{
+    static constexpr int IrradianceMapSize = 32;
+    static constexpr int PrefilterMapSize = 128;
+    static constexpr int PrefilterSampleCount = 1024;
+    static constexpr int BRDFLUTSize = 512;
+    static constexpr int BRDFSampleCount = 1024;
+    Texture<float3> irradiance_map;
+    MipMap2D<float3> prefilter_map;
+    Texture<float2> brdf_lut;
+};
+void createIBLResource(IBL& ibl,const MipMap2D<float3>& env_mipmap);
 class Model
 {
   public:
@@ -19,6 +31,7 @@ class Model
     void loadRoughnessMap(const std::string &);
     void loadMetallicMap(const std::string &);
     void loadEnvironmentMap(const std::string&);
+
     struct ModelTransform
     {
         float rotate_x, rotate_y, rotate_z;
@@ -37,6 +50,7 @@ class Model
     const std::shared_ptr<MipMap2D<float3>>& getEnvironmentMap() const;
     void setModelMatrix(mat4);
     const BoundBox3D &getBoundBox() const;
+    const IBL& getIBL() const;
 
     friend class Scene;
   private:
@@ -48,6 +62,8 @@ class Model
 
 
     std::shared_ptr<MipMap2D<float3>> env_mipmap;
+    IBL ibl;
+
 
     std::unique_ptr<Mesh> mesh;
     BoundBox3D box;

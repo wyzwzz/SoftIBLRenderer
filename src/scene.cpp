@@ -120,11 +120,7 @@ void Scene::loadScene(const std::string &filename)
         load_model.loadAOMap(ambient_path);
         load_model.loadRoughnessMap(roughness_path);
         load_model.loadMetallicMap(metallic_path);
-        if(model.find("environment") != model.end()){
-            auto environment_path = model.at("environment");
-            load_model.loadEnvironmentMap(environment_path);
-            createSkyBoxModel(load_model.getEnvironmentMap());
-        }
+
         if (model.find("transform") != model.end())
         {
             auto model_transform = model.at("transform");
@@ -140,6 +136,10 @@ void Scene::loadScene(const std::string &filename)
             load_model.setModelMatrix(mat4(1.f));
         }
         this->models.emplace_back(std::move(load_model));
+    }
+    if(j.find("environment") != j.end()){
+        auto environment_path = j.at("environment");
+        loadEnvMap(environment_path);
     }
     int light_count = j.at("light_count");
     for (int i = 0; i < light_count; i++)
@@ -178,7 +178,6 @@ void CreateCube(Mesh& mesh){
     };
     std::vector<Triangle> cube_triangles;
     //total 12 triangles
-    //
     cube_triangles.emplace_back(Triangle{cube[0],cube[1],cube[2]});
     cube_triangles.emplace_back(Triangle{cube[0],cube[2],cube[3]});
     cube_triangles.emplace_back(Triangle{cube[1],cube[6],cube[2]});
@@ -196,7 +195,7 @@ void CreateCube(Mesh& mesh){
 void CreateSphere(Mesh& mesh){
     static constexpr uint32_t U_SEGMENTS = 64;
     static constexpr uint32_t V_SEGMENTS = 64;
-    static constexpr float PI = 3.14159265359f;
+
     using Vertex = Triangle::Vertex;
     std::vector<Vertex> vertices;
     for(int v = 0; v <= V_SEGMENTS; ++v){
@@ -228,11 +227,11 @@ void CreateSphere(Mesh& mesh){
     }
     mesh.triangles = std::move(triangles);
 }
-void Scene::createSkyBoxModel(const std::shared_ptr<MipMap2D<float3>>& envMap)
-{
+
+void Scene::loadEnvMap(const std::string& name){
     skybox.reset();
     skybox = std::make_unique<Model>();
-    skybox->env_mipmap = envMap;
+    skybox->loadEnvironmentMap(name);
     skybox->mesh = std::make_unique<Mesh>();
 
 #ifdef USE_CUBE_SKY_BOX
@@ -240,5 +239,5 @@ void Scene::createSkyBoxModel(const std::shared_ptr<MipMap2D<float3>>& envMap)
 #else
     CreateSphere(*skybox->mesh);
 #endif
-
+    createIBLResource(skybox->ibl,*skybox->env_mipmap);
 }

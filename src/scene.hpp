@@ -21,8 +21,8 @@ class Scene
     void clearModels();
     void clearLights();
     void clearScene();
-  private:
-    void createSkyBoxModel(const std::shared_ptr<MipMap2D<float3>>&);
+    void loadEnvMap(const std::string&);
+
   private:
     std::vector<Model> models;
     Camera camera;

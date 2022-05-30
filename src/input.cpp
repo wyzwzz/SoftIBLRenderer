@@ -23,8 +23,19 @@ void InputProcessor::processInput(bool &exit, uint32_t delta_t)
             std::cout << "load scene file: " << event.drop.file << std::endl;
             try
             {
-                scene->clearScene();
-                scene->loadScene(std::string(event.drop.file));
+                auto s = std::string(event.drop.file);
+                auto ext = s.substr(s.find_last_of('.'));
+                if(ext == ".json")
+                {
+                    scene->clearScene();
+                    scene->loadScene(s);
+                }
+                else if(ext == ".hdr"){
+                    scene->loadEnvMap(s);
+                }
+                else{
+                    throw std::runtime_error("invalid input file format");
+                }
             }
             catch (const std::exception &err)
             {

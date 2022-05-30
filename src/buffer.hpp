@@ -144,7 +144,7 @@ class MipMap2D{
 //        generate(lod0_image);
     }
     void generate(const Image2D<T>& lod0_image);
-
+    void generate(int w,int h);
     int levels() const{
         return images.size();
     }
@@ -152,6 +152,10 @@ class MipMap2D{
         return levels() > 0;
     }
     const Image2D<T>& get_level(int level) const{
+        assert(level >=0 && level <levels());
+        return images[level];
+    }
+    Image2D<T>& get_level(int level){
         assert(level >=0 && level <levels());
         return images[level];
     }
@@ -192,4 +196,23 @@ void MipMap2D<T>::generate(const Image2D<T> &lod0_image) {
     }
     std::cout<<"total mipmap levels "<<images.size()<<std::endl;
 }
-
+template <typename T> void MipMap2D<T>::generate(int w,int h)
+{
+    this->images.clear();
+    int last_w = w;
+    int last_h = h;
+    images.emplace_back(Image<T>(w,h));
+    while(last_w > 1 && last_h > 1){
+        if((last_w & 1) || (last_h & 1)){
+            this->images.clear();
+            throw std::runtime_error("invalid input image size: must be power of 2");
+        }
+        const int cur_w = last_w >> 1;
+        const int cur_h = last_h >> 1;
+        Image2D<T> cur_lod_image(cur_w,cur_h);
+        auto& last_lod_image = images.back();
+        images.emplace_back(std::move(cur_lod_image));
+        last_w >>= 1;
+        last_h >>= 1;
+    }
+}

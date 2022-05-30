@@ -235,8 +235,204 @@ void Model::loadEnvironmentMap(const std::string& path){
     this->env_mipmap = std::make_shared<MipMap2D<float3>>();
     this->env_mipmap->generate(hdr);
     std::cout<<"load and generate environment map successfully"<<std::endl;
+
 }
 const std::shared_ptr<MipMap2D<float3>>& Model::getEnvironmentMap() const
 {
     return env_mipmap;
+}
+float RadicalInverse_Vdc(uint32_t bits){
+    bits = (bits << 16u) | (bits >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
+float2 Hammersley(uint32_t i, uint32_t N){
+    return float2(float(i)/float(N), RadicalInverse_Vdc(i));
+}
+
+float DistributionGGX(vec3 N, vec3 H, float roughness){
+    float a = roughness*roughness;
+    float a2 = a*a;
+    float NdotH = std::max(dot(N, H), 0.f);
+    float NdotH2 = NdotH*NdotH;
+
+    float nom   = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+
+    return nom / denom;
+}
+
+float3 ImportanceSampleGGX(float2 Xi, float3 N, float roughness){
+    float a = roughness * roughness;
+
+    float phi = 2.f * PI * Xi.x; // phi是xy平面内与x轴的夹角
+    float cosTheta = sqrt((1.f - Xi.y) / (1.f + (a*a - 1.f) * Xi.y));
+    float sinTheta = sqrt(1.f - cosTheta * cosTheta);
+
+    float3 H;
+    H.x = cos(phi) * sinTheta;
+    H.y = sin(phi) * sinTheta;
+    H.z = cosTheta;
+
+    float3 s,t;
+    coordinate(N,s,t);
+
+    //transform from local to world
+    float3 sample_vec =  H.x * s + H.y * t + H.z * N;
+    return normalize(sample_vec);
+}
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+    // note that we use a different k for IBL
+    // 与直接光渲染的k计算不同
+    float a = roughness;
+    float k = (a * a) / 2.0;
+
+    float nom   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return nom / denom;
+}
+
+float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+{
+    float NdotV = std::max(dot(N, V), 0.f);
+    float NdotL = std::max(dot(N, L), 0.f);
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+
+    return ggx1 * ggx2;
+}
+
+void createIBLResource(IBL& ibl,const MipMap2D<float3>& env_mipmap)
+{
+    static float3 world_up = float3(0,1,0);
+    float sample_delta = 0.025f;
+
+    int irradiance_map_w = IBL::IrradianceMapSize;
+    int irradiance_map_h = IBL::IrradianceMapSize;
+    ibl.irradiance_map = Image2D<float3>(irradiance_map_w,irradiance_map_h);
+    for(int h = 0; h < irradiance_map_h; ++h){
+        for(int w = 0; w < irradiance_map_w; ++w){
+            float u = (w + 0.5f) / irradiance_map_w;
+            float v = (h + 0.5f) / irradiance_map_h;
+            auto N = sampleEquirectangularMap({u,v});
+            float3 s,t;
+            coordinate(N,s,t);
+            int sample_count = 0;
+            float3 irradiance(0);
+            for(float phi = 0.f; phi < 2.f * PI; phi += sample_delta){
+                for(float theta = 0.f; theta < 0.5f * PI; theta += sample_delta){
+                    float3 local_dir = float3(
+                        std::sin(theta)*std::cos(phi),
+                        std::sin(theta)*std::sin(phi),
+                        std::cos(theta));
+                    float3 world_dir = normalize(local_dir.x * s + local_dir.y * t + local_dir.z * N);
+                    auto uv = sampleSphericalMap(world_dir);
+                    irradiance += LinearSampler::sample2D(env_mipmap,uv.x,uv.y,0);
+                    ++sample_count;
+                }
+            }
+            irradiance /= static_cast<float>(sample_count);
+            ibl.irradiance_map.at(w,h) = irradiance;
+        }
+    }
+    std::cout<<"finish generate irradiance map"<<std::endl;
+    int prefilter_map_w = IBL::PrefilterMapSize;
+    int prefilter_map_h = IBL::PrefilterMapSize;
+//    auto prefilter_map_lod0 = Image2D<float3>(prefilter_map_w,prefilter_map_h);
+    int prefilter_sample_count = IBL::PrefilterSampleCount;
+    ibl.prefilter_map.generate(prefilter_map_w,prefilter_map_h);
+    std::cout<<"prefilter map levels: "<<ibl.prefilter_map.levels()<<std::endl;
+    int mip_levels = ibl.prefilter_map.levels();
+    for(int i = 0; i < mip_levels; ++i){
+        float roughness = i * 1.f / (mip_levels - 1);
+        int cur_prefilter_map_h = prefilter_map_h >> i;
+        int cur_prefilter_map_w = prefilter_map_w >> i;
+        for(int h = 0; h < cur_prefilter_map_h; ++h){
+            for(int w = 0; w < cur_prefilter_map_w; ++w){
+                float u = (w + 0.5f) / cur_prefilter_map_w;
+                float v = (h + 0.5f) / cur_prefilter_map_h;
+                auto N = sampleEquirectangularMap({u,v});
+                float3 R = N;
+                float3 V = R;
+                float3 prefilter_color = float3(0);
+                float total_weight = 0.f;
+                for(int i = 0; i < prefilter_sample_count; ++i){
+                    float2 xi = Hammersley(i,prefilter_sample_count);
+                    float3 H = ImportanceSampleGGX(xi,N,roughness);
+                    float3 L = normalize(2.f * dot(V,H) * H - V);
+                    float NdotL = std::max(dot(N,L),0.f);
+                    if(NdotL > 0.f){
+                        auto uv = sampleSphericalMap(L);
+                        //prefilter_color += LinearSampler::sample2D(*env_mipmap, uv.x,uv.y,0) * NdotL;
+                        //total_weight += NdotL;
+
+                        float D = DistributionGGX(N,H,roughness);
+                        float NdotH = std::max(dot(N,H),0.f);
+                        float HdotV = std::max(dot(H,V),0.f);
+                        float pdf = D * NdotH / (4.f * HdotV) + 0.0001f;
+
+                        float sa_texel = 4.f * PI / (6.f * cur_prefilter_map_w * cur_prefilter_map_h);
+                        float sa_sample = 1.f / (prefilter_sample_count * pdf + 0.0001f);
+
+                        float mip_level = roughness == 0.f ? 0.f : 0.5f * std::log2(sa_sample / sa_texel);
+
+                        prefilter_color += LinearSampler::sample2D(env_mipmap,uv.x,uv.y,mip_level);
+                        total_weight += NdotL;
+                    }
+                }
+                prefilter_color /= total_weight;
+                ibl.prefilter_map.get_level(i).at(w,h) = prefilter_color;
+            }
+        }
+    }
+
+    std::cout<<"finish generate prefilter map"<<std::endl;
+
+    int brdf_lut_w = IBL::BRDFLUTSize;
+    int brdf_lut_h = IBL::BRDFLUTSize;
+    ibl.brdf_lut = Image<float2>(brdf_lut_w,brdf_lut_h);
+    int brdf_sample_count = IBL::BRDFSampleCount;
+    for(int h = 0; h < brdf_lut_h; ++h){
+        for(int w = 0; w < brdf_lut_w; ++w){
+            float NdotV = (w + 0.5f) / brdf_lut_w;
+            float roughness = (h + 0.5f) / brdf_lut_h;
+
+            float A = 0.f;
+            float B = 0.f;
+            float3 V = float3(sqrt(1.f - NdotV * NdotV),0.f,NdotV);
+            float3 N = float3(0.f,0.f,1.f);
+            for(int i = 0; i < brdf_sample_count; ++i){
+                float2 Xi = Hammersley(i,brdf_sample_count);
+                float3 H = ImportanceSampleGGX(Xi,N,roughness);
+                float3 L = normalize(2.f * dot(V,H) * H - V);
+
+                float NdotL = std::max(L.z,0.f);
+                float NdotH = std::max(H.z,0.f);
+                float VdotH = std::max(dot(V,H),0.f);
+                if(NdotL > 0.f){
+                    float G = GeometrySmith(N,V,L,roughness);
+                    float G_Vis = (G*VdotH) / (NdotH * NdotV);
+                    float Fc = std::pow(1.f - VdotH, 5.f);
+
+                    A += (1.f - Fc) * G_Vis;
+                    B += Fc * G_Vis;
+                }
+            }
+            A /= brdf_sample_count;
+            B /= brdf_sample_count;
+            ibl.brdf_lut.at(w,h) = {A,B};
+        }
+    }
+
+    std::cout<<"finish generate brdf lut"<<std::endl;
+}
+const IBL &Model::getIBL() const
+{
+    return ibl;
 }
