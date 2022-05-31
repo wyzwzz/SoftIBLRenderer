@@ -1,9 +1,12 @@
 #pragma once
-#include <omp.h>
+
 #include <stdexcept>
 #include <vector>
 #include <cassert>
 #include <iostream>
+
+#include "logger.hpp"
+
 template <typename T>
 class Image
 {
@@ -105,11 +108,7 @@ class Image
 
     void clear()
     {
-#pragma omp parallel for
-        for (int i = 0; i < w * h; i++)
-        {
-            d[i] = T{};
-        }
+        memset(d,0,sizeof(T) * w * h);
     }
 
     int width() const
@@ -133,39 +132,49 @@ class Image
         return d;
     }
 };
+
 template <class T>
 using Image2D = Image<T>;
 
 template<typename T>
 class MipMap2D{
   public:
-    MipMap2D(){}
+    MipMap2D() = default;
+
     explicit MipMap2D(const Image2D<T>& lod0_image){
-//        generate(lod0_image);
+        generate(lod0_image);
     }
+
     void generate(const Image2D<T>& lod0_image);
+
     void generate(int w,int h);
+
     int levels() const{
         return images.size();
     }
+
     bool valid() const{
         return levels() > 0;
     }
+
     const Image2D<T>& get_level(int level) const{
         assert(level >=0 && level <levels());
         return images[level];
     }
+
     Image2D<T>& get_level(int level){
         assert(level >=0 && level <levels());
         return images[level];
     }
+
   private:
+
     std::vector<Image2D<T>> images;
 };
 
 template<typename T>
 void MipMap2D<T>::generate(const Image2D<T> &lod0_image) {
-    std::cout<<"start generate with :"<<lod0_image.width()<<" "<<lod0_image.height()<<std::endl;
+    LOG_DEBUG("start generate with : {} {}",lod0_image.width(),lod0_image.height());
     this->images.clear();
     int last_w = lod0_image.width();
     int last_h = lod0_image.height();
@@ -194,9 +203,11 @@ void MipMap2D<T>::generate(const Image2D<T> &lod0_image) {
         last_w >>= 1;
         last_h >>= 1;
     }
-    std::cout<<"total mipmap levels "<<images.size()<<std::endl;
+    LOG_DEBUG("total mipmap levels: {}",images.size());
 }
-template <typename T> void MipMap2D<T>::generate(int w,int h)
+
+template <typename T>
+void MipMap2D<T>::generate(int w,int h)
 {
     this->images.clear();
     int last_w = w;
@@ -215,4 +226,5 @@ template <typename T> void MipMap2D<T>::generate(int w,int h)
         last_w >>= 1;
         last_h >>= 1;
     }
+    LOG_DEBUG("total mipmap levels: {}",images.size());
 }

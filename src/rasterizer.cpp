@@ -14,6 +14,7 @@ const uint8_t Rasterizer::gammaTable[256] = {
     227, 228, 228, 229, 229, 230, 230, 231, 231, 232, 232, 233, 233, 234, 234, 235, 235, 236, 236, 237, 237, 238,
     238, 239, 239, 240, 240, 241, 241, 242, 242, 243, 243, 244, 244, 245, 245, 246, 246, 247, 247, 248, 248, 249,
     249, 249, 250, 250, 251, 251, 252, 252, 253, 253, 254, 254, 255, 255};
+
 template <typename T>
 inline auto interpolate(float alpha, float beta, float gamma, const T &v1, const T &v2, const T &v3)
 {
@@ -83,6 +84,7 @@ bool Rasterizer::rasterTriangle(Triangle &triangle,const IShader &shader, Image<
     }
     return true;
 }
+
 void Rasterizer::triangleBoundBox(const Triangle &triangle, int &xMin, int &yMin, int &xMax, int &yMax, int w, int h)
 {
     xMax = std::max({triangle.vertices[0].gl_Position.x, triangle.vertices[1].gl_Position.x, triangle.vertices[2].gl_Position.x});
@@ -109,6 +111,7 @@ std::tuple<float, float, float> Rasterizer::computeBarycentric2D(float x, float 
                 v[0].gl_Position.x * v[1].gl_Position.y - v[1].gl_Position.x * v[0].gl_Position.y) / v[2].gl_Position.w;
     return {c1, c2, c3};
 }
+
 bool Rasterizer::insideTriangle(float alpha, float beta, float gamma)
 {
     return (alpha >= 0 && beta >= 0 && gamma >= 0) || (alpha < 0 && beta < 0 && gamma < 0);
@@ -122,6 +125,7 @@ void Rasterizer::viewportTransform(Triangle &triangle, int w, int h)
         vertex.gl_Position.y = (vertex.gl_Position.y + 1.f) * static_cast<float>(h) * 0.5f + 0.5f;
     }
 }
+
 void Rasterizer::gammaAdjust(color4b &pixelColor)
 {
     pixelColor.r = gammaTable[pixelColor.r];

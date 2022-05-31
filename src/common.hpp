@@ -1,7 +1,19 @@
 #pragma once
 
+#include <memory>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+class IShader;
+class SoftRenderer;
+class Scene;
+class Displayer;
+class SoftRenderer;
+class InputProcessor;
+class Engine;
+
+
 using namespace glm;
 using float2 = glm::vec2;
 using float3 = glm::vec3;
@@ -15,10 +27,36 @@ using color4b = glm::vec<4, uint8_t>;
 
 using color3b = glm::vec<3, uint8_t>;
 
-inline const int ScreenWidth = 1280;
-inline const int ScreenHeight = 720;
+constexpr int ScreenWidth = 1280;
+constexpr int ScreenHeight = 720;
+constexpr float ScreenAspectRatio = static_cast<float>(ScreenWidth) / static_cast<float>(ScreenHeight);
 
 constexpr float PI = 3.14159265359f;
+
+
+template<typename T>
+using RC = std::shared_ptr<T>;
+
+template<typename T, typename...Args>
+RC<T> newRC(Args&&...args)
+{
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}
+
+template<typename T>
+using Box = std::unique_ptr<T>;
+
+template<typename T, typename...Args>
+Box<T> newBox(Args&&...args)
+{
+    return std::make_unique<T>(std::forward<Args>(args)...);
+}
+
+struct Light
+{
+    float3 light_position;
+    float3 light_radiance;
+};
 
 constexpr float2 invAtan = vec2(0.1591,0.3183);
 

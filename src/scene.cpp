@@ -230,9 +230,9 @@ void CreateSphere(Mesh& mesh){
 
 void Scene::loadEnvMap(const std::string& name){
     skybox.reset();
-    skybox = std::make_unique<Model>();
+    skybox = newBox<Model>();
     skybox->loadEnvironmentMap(name);
-    skybox->mesh = std::make_unique<Mesh>();
+    skybox->mesh = newBox<Mesh>();
 
 #ifdef USE_CUBE_SKY_BOX
     CreateCube(*skybox->mesh);

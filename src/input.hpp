@@ -1,7 +1,9 @@
 #pragma once
-#include "scene.hpp"
+
 #include <SDL.h>
-#include <memory>
+
+#include "scene.hpp"
+
 /**
  * @brief process mouse, keyboard and file drag events.
  */
@@ -15,5 +17,5 @@ class InputProcessor
     void processInput(bool &exit, uint32_t delta_t);
 
   private:
-    std::shared_ptr<Scene> scene;
+    RC<Scene> scene;
 };

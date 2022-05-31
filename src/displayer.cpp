@@ -1,5 +1,8 @@
-#include "displayer.hpp"
 #include <stdexcept>
+
+#include "displayer.hpp"
+#include "logger.hpp"
+
 Displayer::Displayer()
 {
     initSDL();
@@ -23,26 +26,26 @@ void Displayer::initSDL()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0)
     {
-        printf("%s - SDL could not initialize! SDL Error: %s\n", __FUNCTION__, SDL_GetError());
+        LOG_CRITICAL("{} - SDL could not initialize! SDL Error: {}",__FUNCTION__ ,SDL_GetError());
         throw std::runtime_error("SDL could not initialize");
     }
 
-    window = SDL_CreateWindow("SoftPBRRenderer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ScreenWidth,
-                              ScreenHeight, 0);
+    window = SDL_CreateWindow("SoftPBRRenderer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                              ScreenWidth,ScreenHeight, 0);
     if (!window)
     {
-        printf("%s - SDL could not create window! SDL Error: %s\n", __FUNCTION__, SDL_GetError());
+        LOG_CRITICAL("{} - SDL could not create window! SDL Error: {}",__FUNCTION__ ,SDL_GetError());
         throw std::runtime_error("SDL create window failed");
     }
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (!renderer)
     {
-        printf("%s - SDL could not create SDL_Renderer! SDL Error: %s\n", __FUNCTION__, SDL_GetError());
+        LOG_CRITICAL("{} - SDL could not create SDL_Renderer! SDL Error: {}\n",__FUNCTION__ ,SDL_GetError());
         throw std::runtime_error("SDL create window surface failed");
     }
-    texture =
-        SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, ScreenWidth, ScreenHeight);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING,
+                                ScreenWidth, ScreenHeight);
 }
 
 void Displayer::destroySDL()

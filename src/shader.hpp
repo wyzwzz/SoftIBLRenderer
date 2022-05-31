@@ -1,10 +1,14 @@
 #pragma once
-#include "common.hpp"
+
+#include <omp.h>
+
 #include "mesh.hpp"
 #include "texture.hpp"
-#include <omp.h>
+
+
 class PBRShader;
 class SkyShader;
+
 class IShader
 {
   public:

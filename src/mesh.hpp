@@ -1,10 +1,12 @@
 #pragma once
-#include "common.hpp"
+
 #include <string>
 #include <vector>
-class Triangle
+
+#include "common.hpp"
+
+struct Triangle
 {
-  public:
     struct Vertex
     {
         float4 gl_Position;
@@ -12,7 +14,9 @@ class Triangle
         float3 normal;
         float2 tex_coord;
     };
+
     Vertex vertices[3];
+
     void Homogenization()
     {
         for (int i = 0; i < 3; i++)
@@ -25,10 +29,11 @@ class Triangle
     }
 };
 
-class Mesh
+struct Mesh
 {
-  public:
     Mesh() = default;
+
     explicit Mesh(const std::string &path);
+
     std::vector<Triangle> triangles;
 };

@@ -1,6 +1,6 @@
 # Soft PBR Renderer
 
-一个简单的实现基于物理的软渲染器
+Soft Renderer with IBL
 
 ## Features
 ### Accelerate
@@ -12,11 +12,19 @@
 * OpenMP
 ### Render
 * Physical Base Render
-* Gamma Correction
+* IBL
+* ACES Tone Mapping
 * Support Multiple Models And Lights
 * Support Model Transform And Model Loading Dynamically
-
 ## ScreeShots
+### IBL
+dusk
+![statue](screenshots/ibl_statue.png)
+![cerberus](screenshots/ibl_cerberus1.png)
+day
+![statue](screenshots/ibl_statue1.png)
+![cerberus](screenshots/ibl_cerberus.png)
+### Direct Lighting
 ![cerberus](screenshots/cerberus.png)
 
 ![chest](screenshots/chest.png)

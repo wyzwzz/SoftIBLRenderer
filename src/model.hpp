@@ -1,9 +1,8 @@
 #pragma once
+
 #include "geometry.hpp"
 #include "mesh.hpp"
 #include "texture.hpp"
-#include <memory>
-class Scene;
 
 struct IBL{
     static constexpr int IrradianceMapSize = 32;
@@ -15,13 +14,15 @@ struct IBL{
     MipMap2D<float3> prefilter_map;
     Texture<float2> brdf_lut;
 };
+
 void createIBLResource(IBL& ibl,const MipMap2D<float3>& env_mipmap);
+
 class Model
 {
   public:
-    Model()
-    {
-    }
+
+    Model() = default;
+
     Model(Model &&) noexcept;
 
     void loadMesh(const std::string &);
@@ -30,6 +31,7 @@ class Model
     void loadAOMap(const std::string &);
     void loadRoughnessMap(const std::string &);
     void loadMetallicMap(const std::string &);
+
     void loadEnvironmentMap(const std::string&);
 
     struct ModelTransform
@@ -60,12 +62,10 @@ class Model
     Texture<float> roughness;
     Texture<float> metallic;
 
-
-    std::shared_ptr<MipMap2D<float3>> env_mipmap;
+    RC<MipMap2D<float3>> env_mipmap;
     IBL ibl;
 
-
-    std::unique_ptr<Mesh> mesh;
+    Box<Mesh> mesh;
     BoundBox3D box;
     mat4 model_matrix{1.f};
 };

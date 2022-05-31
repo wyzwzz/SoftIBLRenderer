@@ -1,9 +1,10 @@
+#include <iostream>
+
 #include "mesh.hpp"
+#include "logger.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
-
-#include <iostream>
 
 Mesh::Mesh(const std::string &path)
 {
@@ -12,6 +13,7 @@ Mesh::Mesh(const std::string &path)
     {
         throw std::runtime_error(reader.Error());
     }
+
     auto &attrib = reader.GetAttrib();
     auto &shapes = reader.GetShapes();
 
@@ -28,10 +30,12 @@ Mesh::Mesh(const std::string &path)
         {
             throw std::runtime_error("invalid obj index count: " + std::to_string(shape.mesh.indices.size()));
         }
+
         const size_t triangle_count = shape.mesh.indices.size() / 3;
-        const size_t vertex_count = attrib.vertices.size() / 3;
-        std::cout << "triangle count " << triangle_count << std::endl;
-        std::cout << "vertex count " << vertex_count << std::endl;
+        const size_t vertex_count   = attrib.vertices.size() / 3;
+
+        LOG_INFO("shape ({}) triangle count: {}, vertex count: {}",shape.name,triangle_count,vertex_count);
+
         for (size_t i = 0; i < triangle_count; i++)
         {
             Triangle triangle{};
@@ -52,5 +56,5 @@ Mesh::Mesh(const std::string &path)
             this->triangles.emplace_back(triangle);
         }
     }
-    std::cout << "successfully load " << path << std::endl;
+    LOG_INFO("successfully load: {}",path);
 }

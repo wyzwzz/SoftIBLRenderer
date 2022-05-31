@@ -1,7 +1,12 @@
-#include "zbuffer.hpp"
 #include <iostream>
 #include <queue>
 #include <vector>
+//#include <omp.h>
+
+#include "zbuffer.hpp"
+#include "parallel.hpp"
+#include "logger.hpp"
+
 struct HierarchicalZBuffer::Impl
 {
     Impl(int w, int h)
@@ -9,7 +14,9 @@ struct HierarchicalZBuffer::Impl
         quad_tree = std::make_unique<QuadTree>();
         quad_tree->buildQuadTree(w, h);
     }
+
     ~Impl() = default;
+
     class QuadTree
     {
       public:
@@ -50,12 +57,10 @@ struct HierarchicalZBuffer::Impl
             int last_level_x = leaf_num_x;
             int last_level_y = leaf_num_y;
             auto get_kid = [](const Array2D &nodes, int x, int y, int i, int j) -> QuadNode * {
-                if (i < x && j < y)
-                {
+                if (i < x && j < y){
                     return nodes[j][i];
                 }
-                else
-                {
+                else{
                     return nullptr;
                 }
             };
@@ -86,10 +91,8 @@ struct HierarchicalZBuffer::Impl
                             }
                         }
                         node->box = box;
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (node->kids[i])
-                            {
+                        for (int i = 0; i < 4; i++){
+                            if (node->kids[i]){
                                 node->kids[i]->parent = node;
                             }
                         }
@@ -108,9 +111,10 @@ struct HierarchicalZBuffer::Impl
             this->level_leaf_nodes.emplace_back(std::move(last_level_nodes));
             levels = root->level + 1;
             assert(root->parent == nullptr);
-            std::cout << "root level: " << root->level << std::endl;
-            std::cout << "VolumeBlockTree build finished" << std::endl;
+            LOG_DEBUG("root level: {}",root->level);
+            LOG_DEBUG("quad tree hor hierarchical zbuffer build successfully");
         }
+
         void destroy()
         {
             std::queue<QuadNode *> q;
@@ -128,6 +132,7 @@ struct HierarchicalZBuffer::Impl
                 delete p;
             }
         }
+
         // very cost time
         void clear(QuadNode *node)
         {
@@ -139,36 +144,48 @@ struct HierarchicalZBuffer::Impl
                 clear(node->kids[i]);
             }
         }
+
         void clear()
         {
-            //            clear(root);
+            //clear(root);
             for (int l = 0; l < level_leaf_nodes.size(); l++)
             {
-#pragma omp parallel for
-                for (int row = 0; row < level_leaf_nodes[l].size(); row++)
-                {
+                parallel_forrange(0,(int)level_leaf_nodes[l].size(),[&](int,int row){
                     for (int col = 0; col < level_leaf_nodes[l][row].size(); col++)
                     {
-                        level_leaf_nodes[l][row][col]->depth = 1.f;
+                        level_leaf_nodes[l][row][col]->depth = std::numeric_limits<float>::max();
                     }
-                }
+                });
+//#pragma omp parallel for
+//                for (int row = 0; row < level_leaf_nodes[l].size(); row++)
+//                {
+//                    for (int col = 0; col < level_leaf_nodes[l][row].size(); col++)
+//                    {
+//                        level_leaf_nodes[l][row][col]->depth = std::numeric_limits<float>::max();
+//                    }
+//                }
             }
         }
+
         ~QuadTree()
         {
             destroy();
         }
+
         bool isLeafNode(QuadNode *node) const
         {
             return !node->kids[0];
         }
+
         QuadNode *root;
+
         int levels; // level count = max level + 1
+
         // for quickly clear because recursive clear root node can't use parallel speedup
         std::vector<std::vector<std::vector<QuadNode *>>> level_leaf_nodes;
     };
 
-    std::unique_ptr<QuadTree> quad_tree;
+    Box<QuadTree> quad_tree;
 
     // test for entire triangle
     bool zTest(const BoundBox2D &box, float zVal) const
@@ -195,11 +212,13 @@ struct HierarchicalZBuffer::Impl
             }
         }
     }
+
     // for quick frag test
     bool zTest(int x, int y, float zVal) const
     {
         return quad_tree->level_leaf_nodes[0][y][x]->depth > zVal && zVal >= 0.f && zVal <= 1.f;
     }
+
     void updateZBuffer(int x, int y, float zVal)
     {
         auto leaf = quad_tree->level_leaf_nodes[0][y][x];
@@ -219,6 +238,7 @@ struct HierarchicalZBuffer::Impl
             p = p->parent;
         }
     }
+
     void clear()
     {
         quad_tree->clear();
@@ -227,23 +247,29 @@ struct HierarchicalZBuffer::Impl
 
 HierarchicalZBuffer::HierarchicalZBuffer(int w, int h)
 {
-    impl = std::make_unique<Impl>(w, h);
+    impl = newBox<Impl>(w, h);
 }
+
 HierarchicalZBuffer::~HierarchicalZBuffer()
 {
+
 }
+
 bool HierarchicalZBuffer::zTest(int x, int y, float zVal) const
 {
     return impl->zTest(x, y, zVal);
 }
+
 void HierarchicalZBuffer::updateZBuffer(int x, int y, float zVal)
 {
     impl->updateZBuffer(x, y, zVal);
 }
+
 void HierarchicalZBuffer::clear()
 {
     impl->clear();
 }
+
 bool HierarchicalZBuffer::zTest(const BoundBox2D &box, float minZVal) const
 {
     return impl->zTest(box, minZVal);

@@ -1,20 +1,22 @@
 #pragma once
+
+#include <SDL.h>
+
 #include "buffer.hpp"
 #include "common.hpp"
-#include <SDL.h>
+
 class Displayer
 {
   public:
-    constexpr static float ScreenAspectRatio = static_cast<float>(ScreenWidth) / static_cast<float>(ScreenHeight);
-
-    void draw(const Image<color4b> &pixels);
-
     Displayer();
 
     ~Displayer();
 
+    void draw(const Image<color4b> &pixels);
+
   private:
     void initSDL();
+
     void destroySDL();
 
     SDL_Window *window;

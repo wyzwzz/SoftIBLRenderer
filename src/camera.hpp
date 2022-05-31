@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.hpp"
-#include <glm/gtc/matrix_transform.hpp>
+
 class Camera
 {
   public:
@@ -19,8 +19,11 @@ class Camera
         move_speed = 0.1f;
         move_sense = 0.05f;
     }
+
     mat4 getViewMatrix() const;
+
     mat4 getProjMatrix() const;
+
     float3 position;
     float3 target;
     float3 front;
@@ -35,10 +38,12 @@ class Camera
     float aspect;
     float z_near, z_far;
 };
+
 inline mat4 Camera::getViewMatrix() const
 {
     return glm::lookAt(position, target, up);
 }
+
 inline mat4 Camera::getProjMatrix() const
 {
     return glm::perspective(glm::radians(fov * 0.5f), aspect, z_near, z_far);

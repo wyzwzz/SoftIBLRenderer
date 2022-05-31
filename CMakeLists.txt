@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 include(third_party/glm.cmake)
 include(third_party/sdl2.cmake)
+include(third_party/spdlog.cmake)
 
 find_package(OpenMP)
 
@@ -21,6 +22,7 @@ add_executable(SoftPBRRenderer ${SoftPBRRenderer_SRCS})
 target_link_libraries(SoftPBRRenderer PRIVATE
         glm
         SDL2-static
+        spdlog::spdlog
         OpenMP::OpenMP_CXX
         )
 

@@ -1,18 +1,47 @@
-#include "renderer.hpp"
+#include <omp.h>
+
 #include "config.hpp"
-#include "omp.h"
+#include "parallel.hpp"
+#include "logger.hpp"
+#include "renderer.hpp"
 #include "rasterizer.hpp"
 #include "shader.hpp"
-#include <iostream>
+#include "model.hpp"
+
 SoftRenderer::SoftRenderer(const std::shared_ptr<Scene> &scene) : scene(scene)
 {
     init();
 }
+
 void SoftRenderer::render(const IShader &shader,const Model& model,bool clip)
 {
     int triangle_count = model.getMesh()->triangles.size();
-    std::cout << "render model triangle count " << triangle_count << std::endl;
+
+    LOG_DEBUG("render model triangle count: {}",triangle_count);
+#ifndef NDEBUG
     std::atomic<int> raster_count = 0;
+#endif
+#ifdef NO_USE_OMP
+    parallel_forrange(0,triangle_count,[&](int,int i){
+        const auto &triangle = model.getMesh()->triangles[i];
+
+        if (backFaceCulling(triangle, model.getModelMatrix()))
+            return;
+
+        auto triangle_primitive = shader.vertexShader(triangle);
+
+        if (clip && clipTriangle(triangle_primitive))
+            return;
+
+        triangle_primitive.Homogenization();
+
+        bool r = Rasterizer::rasterTriangle(triangle_primitive, shader, pixels, *z_buffer);
+#ifndef NDEBUG
+        if (r)
+            raster_count++;
+#endif
+    });
+#else
 #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < triangle_count; i++)
     {
@@ -29,43 +58,53 @@ void SoftRenderer::render(const IShader &shader,const Model& model,bool clip)
         triangle_primitive.Homogenization();
 
         bool r = Rasterizer::rasterTriangle(triangle_primitive, shader, pixels, *z_buffer);
+#ifndef NDEBUG
         if (r)
             raster_count++;
+#endif
     }
-    std::cout << "raster triangle count " << raster_count << std::endl;
+#endif
+
+#ifndef NDEBUG
+    LOG_DEBUG("raster triangle count: {}",raster_count);
+#endif
 
 }
 void SoftRenderer::render()
 {
     auto models = scene->getVisibleModels();
-    if (!models.empty())
-        std::cout << "render model count " << models.size() << std::endl;
+
+    if (!models.empty()){
+        LOG_DEBUG("render models count: {}",models.size());
+    }
+
     for (auto model : models)
     {
         PBRShader shader;
-        shader.model = model->getModelMatrix();
-        shader.view = scene->getCamera()->getViewMatrix();
-        shader.projection = scene->getCamera()->getProjMatrix();
-        shader.MVPMatrix = shader.projection * shader.view * shader.model;
-        shader.albedoMap = model->getAlbedoMap();
-        shader.normalMap = model->getNormalMap();
-        shader.aoMap = model->getAOMap();
+        shader.model        = model->getModelMatrix();
+        shader.view         = scene->getCamera()->getViewMatrix();
+        shader.projection   = scene->getCamera()->getProjMatrix();
+        shader.MVPMatrix    = shader.projection * shader.view * shader.model;
+        shader.albedoMap    = model->getAlbedoMap();
+        shader.normalMap    = model->getNormalMap();
+        shader.aoMap        = model->getAOMap();
         shader.roughnessMap = model->getRoughnessMap();
-        shader.metallicMap = model->getMetallicMap();
-        shader.viewPos = scene->getCamera()->position;
+        shader.metallicMap  = model->getMetallicMap();
+        shader.viewPos      = scene->getCamera()->position;
         // set light
+        const auto &lights = scene->getLights();
+        shader.lightNum = std::min(PBRShader::MaxLightNum, (int)lights.size());
+        for (int i = 0; i < shader.lightNum; i++)
         {
-            const auto &lights = scene->getLights();
-            shader.lightNum = std::min(PBRShader::MaxLightNum, (int)lights.size());
-            for (int i = 0; i < shader.lightNum; i++)
-            {
-                shader.lightPos[i] = lights[i].light_position;
-                shader.lightRadiance[i] = lights[i].light_radiance;
-            }
+            shader.lightPos[i] = lights[i].light_position;
+            shader.lightRadiance[i] = lights[i].light_radiance;
         }
+
         int triangle_count = model->getMesh()->triangles.size();
-        std::cout << "render model triangle count " << triangle_count << std::endl;
+        LOG_DEBUG("render model triangle count: {}",triangle_count);
+#ifndef NDEBUG
         std::atomic<int> raster_count = 0;
+#endif
 #pragma omp parallel for firstprivate(shader) schedule(dynamic)
         for (int i = 0; i < triangle_count; i++)
         {
@@ -82,14 +121,18 @@ void SoftRenderer::render()
             triangle_primitive.Homogenization();
 
             bool r = Rasterizer::rasterTriangle(triangle_primitive, shader, pixels, *z_buffer);
+#ifndef NDEBUG
             if (r)
                 raster_count++;
+#endif
         }
-        std::cout << "raster triangle count " << raster_count << std::endl;
+#ifndef NDEBUG
+        LOG_DEBUG("raster triangle count: {}",raster_count);
+#endif
     }
 }
 
-const Image<color4b> &SoftRenderer::getImage()
+const Image<color4b> &SoftRenderer::getImage() const
 {
     return pixels;
 }
@@ -98,6 +141,7 @@ void SoftRenderer::init()
 {
     createFrameBuffer(ScreenWidth, ScreenHeight);
 }
+
 bool SoftRenderer::backFaceCulling(const Triangle &triangle, mat4 modelMatrix) const
 {
     float3 e1 = normalize(triangle.vertices[1].pos - triangle.vertices[0].pos);
@@ -106,6 +150,7 @@ bool SoftRenderer::backFaceCulling(const Triangle &triangle, mat4 modelMatrix) c
     face_normal = modelMatrix * float4(face_normal, 0.f);
     return dot(scene->getCamera()->front, face_normal) > 0.0001f;
 }
+
 bool SoftRenderer::clipTriangle(const Triangle &triangle) const
 {
     int outside_count = 0;
@@ -119,15 +164,17 @@ bool SoftRenderer::clipTriangle(const Triangle &triangle) const
     }
     return outside_count == 3;
 }
+
 void SoftRenderer::createFrameBuffer(int w, int h)
 {
     pixels = Image<color4b>(w, h);
-#if USE_HIERARCHICAL_Z_BUFFER
+#ifdef USE_HIERARCHICAL_Z_BUFFER
     z_buffer = std::make_unique<HierarchicalZBuffer>(w, h);
 #else
     z_buffer = std::make_unique<NaiveZBuffer>(w, h);
 #endif
 }
+
 void SoftRenderer::clearFrameBuffer()
 {
     pixels.clear();

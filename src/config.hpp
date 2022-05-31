@@ -1,3 +1,4 @@
 #pragma once
 
-#define USE_HIERARCHICAL_Z_BUFFER 0
+//#define USE_HIERARCHICAL_Z_BUFFER
+

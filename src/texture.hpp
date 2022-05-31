@@ -1,8 +1,10 @@
 #pragma once
 
+#include <algorithm>
+
 #include "buffer.hpp"
 #include "common.hpp"
-#include <algorithm>
+
 
 template <typename T>
 using Texture = Image<T>;

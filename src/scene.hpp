@@ -1,8 +1,8 @@
 #pragma once
+
 #include "camera.hpp"
-#include "light.hpp"
 #include "model.hpp"
-#include <memory>
+
 class Scene
 {
   public:
@@ -25,7 +25,7 @@ class Scene
 
   private:
     std::vector<Model> models;
-    Camera camera;
     std::vector<Light> lights;
-    std::unique_ptr<Model> skybox;
+    Box<Model> skybox;
+    Camera camera;
 };

@@ -1,6 +1,8 @@
 #pragma once
-#include "common.hpp"
+
 #include <utility>
+#include "common.hpp"
+
 // Ax + By + Cz + D = 0
 struct Plane
 {

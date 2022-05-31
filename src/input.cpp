@@ -1,12 +1,16 @@
 #include "input.hpp"
-#include <iostream>
+#include "logger.hpp"
+
 InputProcessor::InputProcessor(const std::shared_ptr<Scene> &scene) : scene(scene)
 {
+
 }
 
 InputProcessor::~InputProcessor()
 {
+
 }
+
 void InputProcessor::processInput(bool &exit, uint32_t delta_t)
 {
     static SDL_Event event;
@@ -20,7 +24,7 @@ void InputProcessor::processInput(bool &exit, uint32_t delta_t)
             break;
         }
         case SDL_DROPFILE: {
-            std::cout << "load scene file: " << event.drop.file << std::endl;
+            LOG_INFO("load scene file: {}",event.drop.file);
             try
             {
                 auto s = std::string(event.drop.file);
@@ -39,7 +43,7 @@ void InputProcessor::processInput(bool &exit, uint32_t delta_t)
             }
             catch (const std::exception &err)
             {
-                std::cout << err.what() << std::endl;
+                LOG_ERROR("{}",err.what());
             }
             break;
         }

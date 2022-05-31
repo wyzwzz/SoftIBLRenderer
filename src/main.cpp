@@ -1,12 +1,32 @@
-#include "engine.hpp"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+
+#include "engine.hpp"
+#include "logger.hpp"
+
+void SetLogger(const std::string& arg){
+    if(arg == "-debug"){
+        SET_LOG_LEVEL_DEBUG
+    }
+    else if(arg == "-info"){
+        SET_LOG_LEVEL_INFO
+    }
+    else if(arg == "-error"){
+        SET_LOG_LEVEL_ERROR
+    }
+    else{
+        SET_LOG_LEVEL_CRITICAL
+        std::cerr<<"set logger format: -debug or -info or -error"<<std::endl;
+    }
+}
+
 int main(int argc, char **argv)
 {
+    if(argc > 1){
+        SetLogger(std::string(argv[1]));
+    }
     try
     {
-        Engine engine;
+        auto& engine = Engine::getInstance();
 
         engine.startup();
 
@@ -16,7 +36,7 @@ int main(int argc, char **argv)
     }
     catch (const std::exception &err)
     {
-        std::cout << err.what() << std::endl;
+        std::cerr << err.what() << std::endl;
     }
     return 0;
 }
