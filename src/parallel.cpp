@@ -29,6 +29,7 @@ ThreadPool::ThreadPool(size_t threads) : idle(threads), nthreads(threads), stop(
                 idle++;
                 {
                     std::lock_guard<std::mutex> lk(this->mut);
+
                     if (idle.load() == this->nthreads && this->tasks.empty())
                     {
                         waitCond.notify_all();
@@ -42,13 +43,13 @@ ThreadPool::ThreadPool(size_t threads) : idle(threads), nthreads(threads), stop(
 
 void ThreadPool::Wait()
 {
-    std::mutex m;
+    static std::mutex m;
     std::unique_lock<std::mutex> l(m);
-    LOG_INFO("start");
     waitCond.wait(l, [this]() {
+        LOG_DEBUG("wait print: {} {}",this->idle.load(),tasks.size());
         return this->idle.load() == nthreads && tasks.empty();
     });
-    LOG_INFO("finish");
+    LOG_DEBUG("print: {} {}",this->idle.load(),tasks.size());
 }
 
 // the destructor joins all threads

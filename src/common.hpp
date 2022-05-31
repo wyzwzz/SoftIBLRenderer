@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "config.hpp"
+
 class IShader;
 class SoftRenderer;
 class Scene;

@@ -1,5 +1,6 @@
+#ifdef USE_OMP
 #include <omp.h>
-
+#endif
 #include "config.hpp"
 #include "parallel.hpp"
 #include "logger.hpp"
@@ -21,7 +22,7 @@ void SoftRenderer::render(const IShader &shader,const Model& model,bool clip)
 #ifndef NDEBUG
     std::atomic<int> raster_count = 0;
 #endif
-#ifdef NO_USE_OMP
+#ifndef USE_OMP
     parallel_forrange(0,triangle_count,[&](int,int i){
         const auto &triangle = model.getMesh()->triangles[i];
 
@@ -165,14 +166,19 @@ bool SoftRenderer::clipTriangle(const Triangle &triangle) const
     return outside_count == 3;
 }
 
+bool use_hz = false;
+
 void SoftRenderer::createFrameBuffer(int w, int h)
 {
     pixels = Image<color4b>(w, h);
-#ifdef USE_HIERARCHICAL_Z_BUFFER
-    z_buffer = std::make_unique<HierarchicalZBuffer>(w, h);
-#else
-    z_buffer = std::make_unique<NaiveZBuffer>(w, h);
-#endif
+    if(use_hz){
+        z_buffer = std::make_unique<HierarchicalZBuffer>(w, h);
+        LOG_INFO("create hierarchical zbuffer");
+    }
+    else{
+        z_buffer = std::make_unique<NaiveZBuffer>(w, h);
+        LOG_INFO("create naive zbuffer");
+    }
 }
 
 void SoftRenderer::clearFrameBuffer()

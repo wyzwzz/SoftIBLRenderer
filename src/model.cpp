@@ -26,7 +26,7 @@ namespace{
             }
         }
         stbi_image_free(data);
-        std::cout << "successfully load " << path << std::endl;
+        LOG_INFO("successfully load: {}",path);
         return t;
     }
     auto LoadSRGBImage(const std::string &path)
@@ -49,7 +49,7 @@ namespace{
             }
         }
         stbi_image_free(data);
-        std::cout << "successfully load " << path << std::endl;
+        LOG_INFO("successfully load: {}",path);
         return t;
     }
     auto LoadXYZImage(const std::string &path)
@@ -72,7 +72,7 @@ namespace{
             }
         }
         stbi_image_free(data);
-        std::cout << "successfully load " << path << std::endl;
+        LOG_INFO("successfully load: {}",path);
         return t;
     }
     auto LoadRImage(const std::string &path)
@@ -93,7 +93,7 @@ namespace{
             }
         }
         stbi_image_free(data);
-        std::cout << "successfully load " << path << std::endl;
+        LOG_INFO("successfully load: {}",path);
         return t;
     }
 
@@ -115,7 +115,7 @@ namespace{
             }
         }
         stbi_image_free(data);
-        std::cout << "successfully load " << path << std::endl;
+        LOG_INFO("successfully load: {}",path);
         return t;
     }
 
@@ -146,6 +146,7 @@ namespace{
         {
             throw std::runtime_error("invalid image component");
         }
+        LOG_INFO("successfully load: {}",path);
     }
 }
 
@@ -187,7 +188,7 @@ const Texture<float> *Model::getMetallicMap() const
 Model::Model(Model &&rhs) noexcept
     : albedo(std::move(rhs.albedo)), normal(std::move(rhs.normal)), ambientO(std::move(rhs.ambientO)),
       roughness(std::move(rhs.roughness)), metallic(std::move(rhs.metallic)), mesh(std::move(rhs.mesh)),
-      model_matrix(rhs.model_matrix)
+      model_matrix(rhs.model_matrix),box(rhs.box)
 {
 
 }
@@ -212,8 +213,8 @@ void Model::loadMesh(const std::string &mesh_path)
     this->mesh = std::make_unique<Mesh>(mesh_path);
     box.min_p = {std::numeric_limits<float>::max(), std::numeric_limits<float>::max(),
                  std::numeric_limits<float>::max()};
-    box.max_p = {-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(),
-                 -std::numeric_limits<float>::max()};
+    box.max_p = {-std::numeric_limits<float>::min(), -std::numeric_limits<float>::min(),
+                 -std::numeric_limits<float>::min()};
     for (auto &tri : mesh->triangles)
     {
         for (auto &v : tri.vertices)
@@ -272,73 +273,79 @@ const std::shared_ptr<MipMap2D<float3>>& Model::getEnvironmentMap() const
     return env_mipmap;
 }
 
-float RadicalInverse_Vdc(uint32_t bits){
-    bits = (bits << 16u) | (bits >> 16u);
-    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-    return float(bits) * 2.3283064365386963e-10; // / 0x100000000
-}
+namespace {
+    float RadicalInverse_Vdc(uint32_t bits)
+    {
+        bits = (bits << 16u) | (bits >> 16u);
+        bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+        bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+        bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+        bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+        return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+    }
 
-float2 Hammersley(uint32_t i, uint32_t N){
-    return float2(float(i)/float(N), RadicalInverse_Vdc(i));
-}
+    float2 Hammersley(uint32_t i, uint32_t N)
+    {
+        return float2(float(i) / float(N), RadicalInverse_Vdc(i));
+    }
 
-float DistributionGGX(vec3 N, vec3 H, float roughness){
-    float a      = roughness*roughness;
-    float a2     = a*a;
-    float NdotH  = std::max(dot(N, H), 0.f);
-    float NdotH2 = NdotH*NdotH;
+    float DistributionGGX(const float3 &N, const float3 &H, float roughness)
+    {
+        float a = roughness * roughness;
+        float a2 = a * a;
+        float NdotH = std::max(dot(N, H), 0.f);
+        float NdotH2 = NdotH * NdotH;
 
-    float nom   = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
+        float nom = a2;
+        float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+        denom = PI * denom * denom;
 
-    return nom / denom;
-}
+        return nom / denom;
+    }
 
-float3 ImportanceSampleGGX(float2 Xi, float3 N, float roughness){
-    float a = roughness * roughness;
+    float3 ImportanceSampleGGX(const float2 &Xi, const float3 &N, float roughness)
+    {
+        float a = roughness * roughness;
 
-    float phi      = 2.f * PI * Xi.x; // phi是xy平面内与x轴的夹角
-    float cosTheta = sqrt((1.f - Xi.y) / (1.f + (a*a - 1.f) * Xi.y));
-    float sinTheta = sqrt(1.f - cosTheta * cosTheta);
+        float phi = 2.f * PI * Xi.x; // phi是xy平面内与x轴的夹角
+        float cosTheta = sqrt((1.f - Xi.y) / (1.f + (a * a - 1.f) * Xi.y));
+        float sinTheta = sqrt(1.f - cosTheta * cosTheta);
 
-    float3 H;
-    H.x = cos(phi) * sinTheta;
-    H.y = sin(phi) * sinTheta;
-    H.z = cosTheta;
+        float3 H;
+        H.x = cos(phi) * sinTheta;
+        H.y = sin(phi) * sinTheta;
+        H.z = cosTheta;
 
-    float3 s,t;
-    coordinate(N,s,t);
+        float3 s, t;
+        coordinate(N, s, t);
 
-    //transform from local to world
-    float3 sample_vec =  H.x * s + H.y * t + H.z * N;
-    return normalize(sample_vec);
-}
+        // transform from local to world
+        float3 sample_vec = H.x * s + H.y * t + H.z * N;
+        return normalize(sample_vec);
+    }
 
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    // note that we use a different k for IBL
-    // 与直接光渲染的k计算不同
-    float a = roughness;
-    float k = (a * a) / 2.0;
+    float GeometrySchlickGGX(float NdotV, float roughness)
+    {
+        // note that we use a different k for IBL
+        // 与直接光渲染的k计算不同
+        float a = roughness;
+        float k = (a * a) / 2.0;
 
-    float nom   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
+        float nom = NdotV;
+        float denom = NdotV * (1.0 - k) + k;
 
-    return nom / denom;
-}
+        return nom / denom;
+    }
 
-float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
-{
-    float NdotV = std::max(dot(N, V), 0.f);
-    float NdotL = std::max(dot(N, L), 0.f);
-    float ggx2  = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1  = GeometrySchlickGGX(NdotL, roughness);
+    float GeometrySmith(const float3 &N, const float3 &V, const float3 &L, float roughness)
+    {
+        float NdotV = std::max(dot(N, V), 0.f);
+        float NdotL = std::max(dot(N, L), 0.f);
+        float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+        float ggx1 = GeometrySchlickGGX(NdotL, roughness);
 
-    return ggx1 * ggx2;
+        return ggx1 * ggx2;
+    }
 }
 
 void createIBLResource(IBL& ibl,const MipMap2D<float3>& env_mipmap)

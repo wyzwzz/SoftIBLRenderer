@@ -1,13 +1,17 @@
-#include "scene.hpp"
 #include <algorithm>
 #include <array>
 #include <fstream>
 #include <iostream>
+
+#include "scene.hpp"
+
 #include <json.hpp>
+
 const std::vector<Model> &Scene::getModels()
 {
     return models;
 }
+
 std::vector<Model *> Scene::getVisibleModels()
 {
     std::vector<Model *> ms;
@@ -15,6 +19,7 @@ std::vector<Model *> Scene::getVisibleModels()
     {
         auto box = model.getBoundBox();
         auto model_matrix = model.getModelMatrix();
+
         float3 vs[8];
         vs[0] = {box.min_p.x, box.min_p.y, box.min_p.z};
         vs[1] = {box.min_p.x, box.min_p.y, box.max_p.z};
@@ -26,22 +31,23 @@ std::vector<Model *> Scene::getVisibleModels()
         vs[7] = {box.max_p.x, box.max_p.y, box.max_p.z};
         for (int i = 0; i < 8; i++)
         {
-            vs[i] = model_matrix * float4(vs[0], 1.f);
+            auto t = model_matrix * float4(vs[0], 1.f);
+            vs[i] = t / t.w;
             for (int j = 0; j < 3; j++)
             {
                 box.min_p[j] = std::min(box.min_p[j], vs[i][j]);
                 box.max_p[j] = std::max(box.max_p[j], vs[i][j]);
             }
         }
+
         auto vp = camera.getProjMatrix() * camera.getViewMatrix();
-        Frustum frustum;
-        ExtractFrustumFromProjViewMatrix(vp, frustum);
+        FrustumExt frustum;
+        ExtractViewFrustumPlanesFromMatrix(vp, frustum);
         auto visibility = GetBoxVisibility(frustum, box);
-        //todo
-//        if (visibility != BoxVisibility::Invisible)
-//        {
+        if (visibility != BoxVisibility::Invisible)
+        {
             ms.emplace_back(&model);
-//        }
+        }
     }
     // sort by model center to camera distance in order to draw near model first
     std::sort(ms.begin(), ms.end(), [&](Model *m1, Model *m2) {
@@ -54,43 +60,53 @@ std::vector<Model *> Scene::getVisibleModels()
     });
     return ms;
 }
+
 const Camera *Scene::getCamera() const
 {
     return &camera;
 }
+
 void Scene::addModel(Model model)
 {
     models.emplace_back(std::move(model));
 }
+
 void Scene::setCamera(const Camera &camera)
 {
     this->camera = camera;
 }
+
 void Scene::clearModels()
 {
     this->models.clear();
 }
+
 void Scene::clearScene()
 {
     clearModels();
     clearLights();
 }
+
 void Scene::clearLights()
 {
     this->lights.clear();
 }
+
 Scene::Scene()
 {
 
 }
+
 const std::vector<Light> &Scene::getLights() const
 {
     return lights;
 }
+
 void Scene::addLight(const Light &light)
 {
     this->lights.emplace_back(light);
 }
+
 void Scene::loadScene(const std::string &filename)
 {
     std::ifstream in(filename);
@@ -152,18 +168,22 @@ void Scene::loadScene(const std::string &filename)
         addLight(l);
     }
 }
+
 const Model *Scene::getSkyBox() const
 {
     return skybox.get();
 }
+
 const std::vector<Light> &Scene::getLights()
 {
     return lights;
 }
+
 Camera *Scene::getCamera()
 {
     return &camera;
 }
+
 void CreateCube(Mesh& mesh){
     using Vertex = Triangle::Vertex;
     static Vertex cube[8] = {
@@ -192,6 +212,7 @@ void CreateCube(Mesh& mesh){
     cube_triangles.emplace_back(Triangle{cube[4],cube[7],cube[6]});
     mesh.triangles = std::move(cube_triangles);
 }
+
 void CreateSphere(Mesh& mesh){
     static constexpr uint32_t U_SEGMENTS = 64;
     static constexpr uint32_t V_SEGMENTS = 64;

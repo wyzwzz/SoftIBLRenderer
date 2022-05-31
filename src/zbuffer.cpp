@@ -1,4 +1,6 @@
-//#include <omp.h>
+#ifdef USE_OMP
+#include <omp.h>
+#endif
 #include "zbuffer.hpp"
 #include "parallel.hpp"
 
