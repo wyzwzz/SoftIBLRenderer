@@ -25,11 +25,12 @@ ThreadPool::ThreadPool(size_t threads) : idle(threads), nthreads(threads), stop(
                     task = std::move(this->tasks.front());
                     this->tasks.pop();
                 }
+
                 task();
+
                 idle++;
                 {
                     std::lock_guard<std::mutex> lk(this->mut);
-
                     if (idle.load() == this->nthreads && this->tasks.empty())
                     {
                         waitCond.notify_all();
@@ -43,9 +44,8 @@ ThreadPool::ThreadPool(size_t threads) : idle(threads), nthreads(threads), stop(
 
 void ThreadPool::Wait()
 {
-    static std::mutex m;
-    std::unique_lock<std::mutex> l(m);
-    waitCond.wait(l, [this]() {
+    std::unique_lock<std::mutex> l(mut);
+    waitCond.wait(l,[this]() {
         LOG_DEBUG("wait print: {} {}",this->idle.load(),tasks.size());
         return this->idle.load() == nthreads && tasks.empty();
     });
